@@ -72,10 +72,25 @@ feature branch  →  PR  →  dev  →  main
 
 `main` e sincron cu `dev` (`536148e`).
 
+### În lucru pe remote
+
+**`feat/domenii-administrabile-si-exporturi-excel`** — urcat 7 aug 19:40, **nemerged**.
+3 commit-uri, 54 fișiere, **+7752 / −954**.
+
+| Commit | Ce aduce |
+|---|---|
+| `fe8f891` | domenii administrabile — migrările `0017` `0018` `0019`, `excel_export.py` (nou, 343 linii), abonament lunar |
+| `6552e74` | dashboard pe domenii, editare cu creionul, exporturi noi în frontend |
+| `b70b800` | temă albastră pe gri Nardo; „minodora" → „roz" |
+
+Domeniile nu mai sunt listă fixă în frontend, ci **tabel administrabil** în baza de date — vezi
+[[Migrari zero-downtime]]. Acoperit de teste: `test_budgets_domains.py` (329 linii) și
+`AdaugaDomeniuDialog.test.tsx` (198 linii).
+
 ### Branch-uri locale rămase
 
-Pe remote au mai rămas doar `dev`, `main` și `fix/production-ready` — restul au fost șterse după
-merge. Astea există **doar local**, ca resturi:
+Pe remote au mai rămas doar `dev`, `main`, `fix/production-ready` și branch-ul de domenii de mai
+sus — restul au fost șterse după merge. Astea există **doar local**, ca resturi:
 
 | Branch local | Stare |
 |---|---|
