@@ -48,8 +48,16 @@ $TRACKED = @(
 
 $MARK_START   = '<!-- COMMITS:START - generat de scripts/sync-daily.ps1, nu edita intre markeri -->'
 $MARK_END     = '<!-- COMMITS:END -->'
-$TAG_TODAY    = '#azi'
-$MAX_FILES    = 14      # cate fisiere listez per commit inainte sa rezum
+$TAG_TODAY    = '#azi'        # notele secundare atinse azi (verde in graf)
+$TAG_FOCUS    = '#azi-focus'  # nota zilei, nodul principal (magenta in graf)
+$MAX_FILES    = 14            # cate fisiere listez per commit inainte sa rezum
+
+# Canvas-ul zilei: pozitii fixe, ce nu se poate obtine in graph view
+$CANVAS_FILE  = 'Azi.canvas'
+$C_FOCUS      = '#ff2d95'   # magenta - nodul zilei
+$C_TODAY      = '#35e07a'   # verde   - notele atinse azi
+$C_TEAMS      = '#00d9ff'   # cyan    - sedinte si task-uri din Teams
+$C_ANCHOR     = '#8a93a5'   # gri     - ancorele vaultului
 
 function Write-Utf8 {
     param([string]$Path, [string]$Content)
@@ -249,14 +257,26 @@ $Section
 # Tag-ul #azi: scos de peste tot, pus doar unde ai lucrat azi
 # ---------------------------------------------------------------------------
 function Set-TodayTag {
-    param([string]$VaultPath, [string[]]$TargetRelPaths)
+    param(
+        [string]   $VaultPath,
+        [string]   $FocusRelPath,      # nota zilei    -> #azi-focus
+        [string[]] $TouchedRelPaths    # notele atinse -> #azi
+    )
 
-    $targets = @{}
-    foreach ($t in $TargetRelPaths) {
-        $targets[(Join-Path $VaultPath ($t -replace '/', '\'))] = $true
-    }
+    function Resolve-Rel { param($p) Join-Path $VaultPath ($p -replace '/', '\') }
+
+    $wantFocus = @{}
+    if ($FocusRelPath) { $wantFocus[(Resolve-Rel $FocusRelPath)] = $true }
+
+    $wantToday = @{}
+    foreach ($t in $TouchedRelPaths) { $wantToday[(Resolve-Rel $t)] = $true }
 
     $touched = @{ Added = @(); Removed = @() }
+
+    # ordinea conteaza: #azi-focus contine #azi ca prefix, deci il scot pe cel
+    # lung primul, altfel raman resturi de tip "-focus" in nota
+    $rxFocus = "(?m)^\s*$([regex]::Escape($TAG_FOCUS))\s*\r?\n?"
+    $rxToday = "(?m)^\s*$([regex]::Escape($TAG_TODAY))\s*\r?\n?"
 
     $notes = Get-ChildItem $VaultPath -Recurse -Filter *.md -File |
              Where-Object { $_.FullName -notlike '*\.obsidian\*' }
@@ -265,22 +285,187 @@ function Set-TodayTag {
         $text = Read-Utf8 $n.FullName
         if ($null -eq $text) { continue }
 
-        $hasTag  = $text -match "(?m)^\s*$([regex]::Escape($TAG_TODAY))\s*$"
-        $wantTag = $targets.ContainsKey($n.FullName)
+        $orig    = $text
+        $isFocus = $wantFocus.ContainsKey($n.FullName)
+        $isToday = $wantToday.ContainsKey($n.FullName)
 
-        if ($hasTag -and -not $wantTag) {
-            $new = [regex]::Replace($text, "(?m)^\s*$([regex]::Escape($TAG_TODAY))\s*\r?\n?", '')
-            Write-Utf8 -Path $n.FullName -Content $new
-            $touched.Removed += $n.Name
-        }
-        elseif ($wantTag -and -not $hasTag) {
-            $new = $text.TrimEnd() + "`n`n$TAG_TODAY`n"
-            Write-Utf8 -Path $n.FullName -Content $new
-            $touched.Added += $n.Name
+        # curat ambele tag-uri, apoi pun ce trebuie
+        $text = [regex]::Replace($text, $rxFocus, '')
+        $text = [regex]::Replace($text, $rxToday, '')
+
+        $tag = if ($isFocus) { $TAG_FOCUS } elseif ($isToday) { $TAG_TODAY } else { $null }
+        if ($tag) { $text = $text.TrimEnd() + "`n`n$tag`n" }
+
+        if ($text -ne $orig) {
+            Write-Utf8 -Path $n.FullName -Content $text
+            if ($tag) { $touched.Added += "$($n.Name) [$tag]" } else { $touched.Removed += $n.Name }
         }
     }
 
     return $touched
+}
+
+# ---------------------------------------------------------------------------
+# Canvas-ul zilei
+#
+# Graph view-ul Obsidian e force-directed: pozitiile sunt REZULTATUL simularii
+# fizice, nu date de intrare. Nu exista setare care sa spuna "nodul asta sta la
+# dreapta". Canvas e singurul loc din Obsidian cu coordonate explicite, deci aici
+# construiesc harta zilei: azi la dreapta, Teams dedesubt, legaturile intacte.
+# ---------------------------------------------------------------------------
+function New-CanvasNode {
+    param($Id, $Type, $File, $Text, $Label, $X, $Y, $W, $H, $Color)
+    $n = [ordered]@{ id = $Id; type = $Type; x = $X; y = $Y; width = $W; height = $H }
+    if ($Type -eq 'file')  { $n.file  = $File }
+    if ($Type -eq 'text')  { $n.text  = $Text }
+    if ($Type -eq 'group') { $n.label = $Label }
+    if ($Color)            { $n.color = $Color }
+    return [pscustomobject]$n
+}
+
+function New-CanvasEdge {
+    param($Id, $From, $FromSide, $To, $ToSide, $Color, $Label)
+    $e = [ordered]@{
+        id = $Id; fromNode = $From; fromSide = $FromSide; toNode = $To; toSide = $ToSide
+    }
+    if ($Color) { $e.color = $Color }
+    if ($Label) { $e.label = $Label }
+    return [pscustomobject]$e
+}
+
+function Get-TeamsItems {
+    param([string]$VaultPath)
+    # Populat de mine dupa autentificarea Microsoft 365; scriptul merge si fara el.
+    $cache = Join-Path $VaultPath 'scripts\teams-cache.json'
+    if (-not (Test-Path $cache)) { return @() }
+    try {
+        $raw = Read-Utf8 $cache
+        if (-not $raw) { return @() }
+        return @(($raw | ConvertFrom-Json).items)
+    } catch {
+        Write-Host "  ! teams-cache.json nu se poate citi: $($_.Exception.Message)" -ForegroundColor DarkYellow
+        return @()
+    }
+}
+
+function Build-Canvas {
+    param(
+        [string]   $VaultPath,
+        [string]   $Day,
+        [string[]] $TouchedNotes   # cai relative catre notele de proiect atinse azi
+    )
+
+    $nodes = New-Object System.Collections.ArrayList
+    $edges = New-Object System.Collections.ArrayList
+    $k = 0
+    function NextId { $script:k++; return ("n{0:D3}" -f $script:k) }
+
+    # ---- ancorele vaultului, stanga ----
+    $ANCHORS = @(
+        @{ File = '00 START HERE.md';                 Y = -340 }
+        @{ File = 'Dashboard.md';                     Y = -110 }
+        @{ File = 'maps/MOC Vault - cum functioneaza.md'; Y = 130 }
+    )
+
+    $anchorIds = @{}
+    foreach ($a in $ANCHORS) {
+        if (-not (Test-Path (Join-Path $VaultPath ($a.File -replace '/', '\')))) { continue }
+        $id = NextId
+        [void]$nodes.Add((New-CanvasNode -Id $id -Type 'file' -File $a.File `
+            -X -760 -Y $a.Y -W 360 -H 200 -Color $C_ANCHOR))
+        $anchorIds[$a.File] = $id
+    }
+
+    $dashId = $anchorIds['Dashboard.md']
+
+    # ---- zona AZI, impinsa clar la dreapta ----
+    $aziX     = 560
+    $aziCount = 1 + $TouchedNotes.Count
+    $aziH     = 340 + ($TouchedNotes.Count * 210) + 80
+
+    [void]$nodes.Add((New-CanvasNode -Id (NextId) -Type 'group' -Label "AZI · $Day" `
+        -X ($aziX - 40) -Y -420 -W 580 -H $aziH -Color $C_FOCUS))
+
+    $focusId   = NextId
+    $focusFile = "daily/$Day.md"
+    [void]$nodes.Add((New-CanvasNode -Id $focusId -Type 'file' -File $focusFile `
+        -X $aziX -Y -360 -W 500 -H 300 -Color $C_FOCUS))
+
+    # nota zilei ramane legata de vault
+    if ($dashId) {
+        [void]$edges.Add((New-CanvasEdge -Id (NextId) -From $focusId -FromSide 'left' `
+            -To $dashId -ToSide 'right' -Color $C_FOCUS -Label 'ziua curentă'))
+    }
+
+    $y = -20
+    $projIds = @()
+    foreach ($p in $TouchedNotes) {
+        if (-not (Test-Path (Join-Path $VaultPath ($p -replace '/', '\')))) { continue }
+        $id = NextId
+        [void]$nodes.Add((New-CanvasNode -Id $id -Type 'file' -File $p `
+            -X $aziX -Y $y -W 500 -H 180 -Color $C_TODAY))
+        [void]$edges.Add((New-CanvasEdge -Id (NextId) -From $id -FromSide 'top' `
+            -To $focusId -ToSide 'bottom' -Color $C_TODAY))
+        $projIds += $id
+        $y += 210
+    }
+
+    # ---- zona TEAMS, dedesubt ----
+    $teams  = Get-TeamsItems -VaultPath $VaultPath
+    $teamsY = 620
+    $teamsW = if ($teams.Count) { [Math]::Max(900, 40 + $teams.Count * 340) } else { 900 }
+
+    [void]$nodes.Add((New-CanvasNode -Id (NextId) -Type 'group' -Label 'TEAMS · ședințe și taskuri' `
+        -X -200 -Y ($teamsY - 60) -W $teamsW -H 360 -Color $C_TEAMS))
+
+    if ($teams.Count -eq 0) {
+        $txt = @"
+### Teams — încă neconectat
+
+Aici intră următoarele ședințe și taskurile primite de la echipă.
+
+Ca să le aduc: rulează **/mcp** în Claude Code și autentifică
+**claude.ai Microsoft 365**. Apoi scriu `scripts/teams-cache.json`
+și zona asta se populează la următorul sync.
+"@
+        $tid = NextId
+        [void]$nodes.Add((New-CanvasNode -Id $tid -Type 'text' -Text $txt `
+            -X -160 -Y $teamsY -W 520 -H 240 -Color $C_TEAMS))
+        if ($dashId) {
+            [void]$edges.Add((New-CanvasEdge -Id (NextId) -From $tid -FromSide 'top' `
+                -To $dashId -ToSide 'bottom' -Color $C_TEAMS))
+        }
+    }
+    else {
+        $tx = -160
+        foreach ($t in $teams) {
+            $when  = if ($t.when)  { $t.when }  else { '' }
+            $title = if ($t.title) { $t.title } else { '(fără titlu)' }
+            $who   = if ($t.who)   { "`n`n$($t.who)" } else { '' }
+            $kind  = if ($t.kind -eq 'task') { 'TASK' } else { 'ȘEDINȚĂ' }
+
+            $txt = "**$kind · $when**`n`n### $title$who"
+            $tid = NextId
+            [void]$nodes.Add((New-CanvasNode -Id $tid -Type 'text' -Text $txt `
+                -X $tx -Y $teamsY -W 300 -H 240 -Color $C_TEAMS))
+
+            # leaga de proiectul potrivit daca stiu care e, altfel de ziua curenta
+            $target = $focusId
+            if ($t.note) {
+                $idx = [array]::IndexOf($TouchedNotes, $t.note)
+                if ($idx -ge 0 -and $idx -lt $projIds.Count) { $target = $projIds[$idx] }
+            }
+            [void]$edges.Add((New-CanvasEdge -Id (NextId) -From $tid -FromSide 'top' `
+                -To $target -ToSide 'bottom' -Color $C_TEAMS))
+            $tx += 340
+        }
+    }
+
+    $canvas = [ordered]@{ nodes = @($nodes); edges = @($edges) }
+    $json   = $canvas | ConvertTo-Json -Depth 8
+    Write-Utf8 -Path (Join-Path $VaultPath $CANVAS_FILE) -Content $json
+
+    return @{ Nodes = $nodes.Count; Edges = $edges.Count; Teams = $teams.Count }
 }
 
 # ===========================================================================
@@ -308,21 +493,25 @@ $dailyPath = Join-Path $Vault "daily\$Date.md"
 $action    = Update-DailyNote -Path $dailyPath -Day $Date -Section $section.Text
 Write-Host "  daily/$Date.md  -> $action ($($section.Commits) commit-uri)"
 
-# notele care primesc #azi: daily-ul + proiectele in care s-a lucrat
-if (-not $NoTag) {
-    $tagTargets = @("daily/$Date.md")
-    foreach ($r in $live) {
-        # @(...) obligatoriu: PowerShell despacheteaza array-ul de un element la
-        # return, iar .Count pe obiectul singular da $null, nu 1.
-        $c = @(Get-DayCommits -RepoPath $r.Path -Day $Date)
-        if ($c.Count -gt 0 -and $r.Note) { $tagTargets += $r.Note }
-    }
-
-    $tag = Set-TodayTag -VaultPath $Vault -TargetRelPaths $tagTargets
-    if ($tag.Added.Count)   { Write-Host "  #azi pus pe    : $($tag.Added -join ', ')" }
-    if ($tag.Removed.Count) { Write-Host "  #azi scos de pe: $($tag.Removed -join ', ')" }
-    if (-not $tag.Added.Count -and -not $tag.Removed.Count) { Write-Host "  #azi: nimic de schimbat" }
+# notele de proiect in care s-a lucrat azi
+$touchedNotes = @()
+foreach ($r in $live) {
+    # @(...) obligatoriu: PowerShell despacheteaza array-ul de un element la
+    # return, iar .Count pe obiectul singular da $null, nu 1.
+    $c = @(Get-DayCommits -RepoPath $r.Path -Day $Date)
+    if ($c.Count -gt 0 -and $r.Note) { $touchedNotes += $r.Note }
 }
+
+if (-not $NoTag) {
+    $tag = Set-TodayTag -VaultPath $Vault -FocusRelPath "daily/$Date.md" -TouchedRelPaths $touchedNotes
+    if ($tag.Added.Count)   { Write-Host "  tag pus pe : $($tag.Added -join ', ')" }
+    if ($tag.Removed.Count) { Write-Host "  tag scos de: $($tag.Removed -join ', ')" }
+    if (-not $tag.Added.Count -and -not $tag.Removed.Count) { Write-Host "  taguri: nimic de schimbat" }
+}
+
+$cv = Build-Canvas -VaultPath $Vault -Day $Date -TouchedNotes $touchedNotes
+$teamsInfo = if ($cv.Teams) { "$($cv.Teams) intrări Teams" } else { "Teams neconectat" }
+Write-Host "  $CANVAS_FILE     -> $($cv.Nodes) noduri, $($cv.Edges) legături ($teamsInfo)"
 
 # commit + push vault
 $dirty = git -C $Vault status --porcelain
