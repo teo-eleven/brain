@@ -9,47 +9,80 @@
   "colorGroups": [
     {
       "query": "path:maps",
-      "color": { "a": 1, "rgb": 14717231 }
+      "color": {
+        "a": 1,
+        "rgb": 14717231
+      }
     },
     {
       "query": "path:notes",
-      "color": { "a": 1, "rgb": 6000086 }
+      "color": {
+        "a": 1,
+        "rgb": 6000086
+      }
     },
     {
       "query": "path:cheatsheets",
-      "color": { "a": 1, "rgb": 3121290 }
+      "color": {
+        "a": 1,
+        "rgb": 3121290
+      }
     },
     {
       "query": "path:snippets",
-      "color": { "a": 1, "rgb": 10189780 }
+      "color": {
+        "a": 1,
+        "rgb": 10189780
+      }
     },
     {
       "query": "path:projects",
-      "color": { "a": 1, "rgb": 14706780 }
+      "color": {
+        "a": 1,
+        "rgb": 14706780
+      }
     },
     {
       "query": "path:decisions",
-      "color": { "a": 1, "rgb": 12866877 }
+      "color": {
+        "a": 1,
+        "rgb": 12866877
+      }
     },
     {
       "query": "path:daily",
-      "color": { "a": 1, "rgb": 6796256 }
+      "color": {
+        "a": 1,
+        "rgb": 6796256
+      }
     },
     {
       "query": "path:weekly",
-      "color": { "a": 1, "rgb": 4889545 }
+      "color": {
+        "a": 1,
+        "rgb": 4889545
+      }
     },
     {
       "query": "path:inbox",
-      "color": { "a": 1, "rgb": 13214247 }
+      "color": {
+        "a": 1,
+        "rgb": 13214247
+      }
     },
     {
       "query": "path:people",
-      "color": { "a": 1, "rgb": 14056360 }
+      "color": {
+        "a": 1,
+        "rgb": 14056360
+      }
     },
     {
       "query": "path:_templates",
-      "color": { "a": 1, "rgb": 9081765 }
+      "color": {
+        "a": 1,
+        "rgb": 9081765
+      }
     }
   ],
   "collapse-display": false,
@@ -62,6 +95,6 @@
   "repelStrength": 15,
   "linkStrength": 0.7,
   "linkDistance": 235,
-  "scale": 0.75,
-  "close": false
+  "scale": 0.13846744669393504,
+  "close": true
 }

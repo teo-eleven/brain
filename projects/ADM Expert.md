@@ -44,11 +44,20 @@ Node-ul e portabil și umbrit de PATH — comenzile de frontend au nevoie de pre
 
 ## Starea actuală
 
-<!-- Actualizat: 2026-08-06 -->
+<!-- Actualizat: 2026-08-07 -->
 
 - Multi-tenancy: baza reală migrată la companies (`econfaire`, `leviatan`, `ubitech`)
 - Conturile Leviatan / Ubitech se creează manual din UI-ul de Settings
-- Munca de UI fără animații e parcată pe branch-ul `fix/animatii-ui`
+- Terminologia din cod aliniată la domeniu: „firmă" → **„companie"** peste tot, commit `35fa2e9`
+  (40 fișiere) — vezi [[2026-08-07]]
+- Prezentat proiectul pe 7 august — [[2026-08-07]]
+
+### Branch-uri deschise
+
+| Branch | Ce conține | Stare |
+|---|---|---|
+| `refactor/redenumire-firma-in-companie` | redenumirea firmă → companie | **nemerged în `main`** |
+| `fix/animatii-ui` | munca de UI fără animații | parcat |
 
 ## Următorii pași
 
