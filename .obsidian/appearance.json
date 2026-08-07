@@ -1,0 +1,10 @@
+{
+  "theme": "obsidian",
+  "accentColor": "#7c6cf5",
+  "interfaceFontFamily": "",
+  "textFontFamily": "",
+  "monospaceFontFamily": "Cascadia Code, Consolas",
+  "baseFontSize": 16,
+  "showViewHeader": true,
+  "nativeMenus": false
+}

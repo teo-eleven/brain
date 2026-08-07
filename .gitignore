@@ -1,0 +1,13 @@
+# Obsidian — stare volatila de UI, se schimba la fiecare click
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/plugins/*/data.json
+
+# Cosul de gunoi al vaultului
+.trash/
+
+# Windows / macOS
+Thumbs.db
+desktop.ini
+.DS_Store

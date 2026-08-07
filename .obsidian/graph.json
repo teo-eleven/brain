@@ -1,0 +1,47 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "path:daily",
+      "color": { "a": 1, "rgb": 5431378 }
+    },
+    {
+      "query": "path:maps",
+      "color": { "a": 1, "rgb": 14725458 }
+    },
+    {
+      "query": "path:projects",
+      "color": { "a": 1, "rgb": 11621088 }
+    },
+    {
+      "query": "path:cheatsheets",
+      "color": { "a": 1, "rgb": 15695624 }
+    },
+    {
+      "query": "path:snippets",
+      "color": { "a": 1, "rgb": 16007990 }
+    },
+    {
+      "query": "path:decisions",
+      "color": { "a": 1, "rgb": 10233776 }
+    }
+  ],
+  "collapse-display": false,
+  "showArrow": false,
+  "textFadeMultiplier": -0.8,
+  "nodeSizeMultiplier": 1.3,
+  "lineSizeMultiplier": 1,
+  "collapse-forces": false,
+  "centerStrength": 0.35,
+  "repelStrength": 12,
+  "linkStrength": 0.9,
+  "linkDistance": 220,
+  "scale": 0.8,
+  "close": false
+}
