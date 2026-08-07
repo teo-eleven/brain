@@ -52,12 +52,23 @@ Node-ul e portabil și umbrit de PATH — comenzile de frontend au nevoie de pre
   (40 fișiere) — vezi [[2026-08-07]]
 - Prezentat proiectul pe 7 august — [[2026-08-07]]
 
+### Cum circulă codul
+
+Branch-ul de integrare e **`dev`**, nu `main` — `origin/HEAD` arată spre `dev`, iar `main` primește
+doar merge-uri din `dev` (ultimul: `7f9c97d "Merge branch 'dev'"`, 5 aug). Fluxul real:
+
+```
+feature branch  →  PR  →  dev  →  main
+```
+
 ### Branch-uri deschise
 
 | Branch | Ce conține | Stare |
 |---|---|---|
-| `refactor/redenumire-firma-in-companie` | redenumirea firmă → companie | **nemerged în `main`** |
+| `refactor/redenumire-firma-in-companie` | redenumirea firmă → companie (`35fa2e9`) | **doar pe branch-ul lui** — 4 commit-uri înaintea lui `origin/dev`, 2 în urmă |
 | `fix/animatii-ui` | munca de UI fără animații | parcat |
+| `modificari-minodora` | cele 8 cerințe din documentul Minodorei | nemerged |
+| `fix/retusuri-finale` · `fix/retusuri-minodora` | retușuri export buget | nemerged |
 
 ## Următorii pași
 
