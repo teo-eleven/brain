@@ -7,6 +7,11 @@
 # Cosul de gunoi al vaultului
 .trash/
 
+# Date de la munca (Leviatan) - raman LOCAL, nu pe contul personal de GitHub.
+# Contin nume de colegi si sedinte interne. Canvas-ul le afiseaza, deci iese si el.
+scripts/teams-cache.json
+Azi.canvas
+
 # Windows / macOS
 Thumbs.db
 desktop.ini
