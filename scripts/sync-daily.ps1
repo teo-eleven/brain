@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Duce commit-urile zilei din repo-urile urmarite in daily note-ul din vault
     si marcheaza in graf notele atinse azi.
