@@ -51,3 +51,5 @@ status: active
 ## Note legate
 
 - [[MOC Backend si API]] · [[MOC AI si LLM]]
+
+#azi

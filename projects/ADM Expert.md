@@ -81,3 +81,5 @@ Ce am învățat aici și e general aplicabil:
 - [[Migrari zero-downtime]] — migrarea la companies
 - [[Autentificare vs autorizare]] — IDOR-ul e riscul principal aici
 - [[Python virtual environments]] · [[PowerShell cheatsheet]]
+
+#azi

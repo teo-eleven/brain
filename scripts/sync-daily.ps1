@@ -312,9 +312,11 @@ Write-Host "  daily/$Date.md  -> $action ($($section.Commits) commit-uri)"
 if (-not $NoTag) {
     $tagTargets = @("daily/$Date.md")
     foreach ($r in $live) {
-        $c = Get-DayCommits -RepoPath $r.Path -Day $Date
+        $c = @(Get-DayCommits -RepoPath $r.Path -Day $Date)
+        Write-Host "    debug: $($r.Name) -> $($c.Count) commit-uri, nota='$($r.Note)'" -ForegroundColor DarkCyan
         if ($c.Count -gt 0 -and $r.Note) { $tagTargets += $r.Note }
     }
+    Write-Host "    debug: tinte tag = $($tagTargets -join ' | ')" -ForegroundColor DarkCyan
 
     $tag = Set-TodayTag -VaultPath $Vault -TargetRelPaths $tagTargets
     if ($tag.Added.Count)   { Write-Host "  #azi pus pe    : $($tag.Added -join ', ')" }
