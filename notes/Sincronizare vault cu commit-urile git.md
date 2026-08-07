@@ -29,6 +29,45 @@ D:\teodor.fotciuc\brain\scripts\sync-daily.ps1 -Date 2026-08-06   # reconstruie�
 D:\teodor.fotciuc\brain\scripts\sync-daily.ps1 -NoPush            # doar local
 ```
 
+## De ce canvas și nu graph view
+
+**Graph view-ul Obsidian nu poate poziționa noduri.** E un layout force-directed: pozițiile sunt
+*rezultatul* simulării fizice — repulsie între noduri, arcuri pe legături, gravitație spre centru.
+Nu sunt date de intrare. Nu există setare, nici în `graph.json`, nici în vreun plugin serios, care
+să spună „nodul ăsta stă la dreapta". Dacă ar exista, ar strica exact ce face graful util: gruparea
+automată după conexiuni.
+
+**Canvas** e singurul loc din Obsidian cu coordonate explicite (`x`, `y` per nod). De aceea harta
+zilei — `Azi.canvas` — se generează acolo:
+
+| Zonă | Poziție | Culoare |
+|---|---|---|
+| Ancorele vaultului | stânga, `x = -760` | gri `#8a93a5` |
+| **AZI** — nota zilei + proiectele atinse | dreapta, `x = 560` | magenta `#ff2d95` / verde `#35e07a` |
+| **TEAMS** — ședințe și taskuri | dedesubt, `y = 620` | cyan `#00d9ff` |
+
+Legăturile rămân: nota zilei → Dashboard, proiectele → nota zilei, intrările Teams → proiectul lor.
+Canvas-ul se regenerează la fiecare sync, deci nu se învechește.
+
+Cele două lumi se completează: **graful** arată structura de cunoștințe, **canvas-ul** arată ziua
+de lucru. În graf, ziua se vede prin culoare (magenta pentru nota zilei, verde pentru proiecte);
+poziția rămâne treaba fizicii.
+
+## Teams
+
+Ședințele și taskurile vin din Microsoft 365, prin conectorul MCP. Cache-ul stă în
+`scripts/teams-cache.json`, în forma:
+
+```json
+{ "items": [
+  { "kind": "meeting", "when": "9 aug 10:00", "title": "Sprint review",
+    "who": "echipa ADM", "note": "projects/ADM Expert.md" }
+] }
+```
+
+`note` e opțional — dacă e pus, intrarea se leagă în canvas direct de proiectul respectiv, altfel
+de ziua curentă. Scriptul merge și fără fișier: zona Teams arată atunci cum se conectează.
+
 ## De ce tag și nu culoare pe dată
 
 Culoarea din graph view se configurează în `.obsidian/graph.json`, iar Obsidian rescrie fișierul

@@ -16,8 +16,12 @@ Pagina de start de zi cu zi. Pune-o la **bookmark** (`Ctrl+P` → *Bookmark curr
 
 ### Unde am lucrat azi
 
-Notele marcate `#azi` — în [[Graph view - ce e util|graph view]] sunt colorate **verde aprins**,
-deci le vezi dintr-o privire. Le mută automat `scripts/sync-daily.ps1`.
+> **[[Azi.canvas|🗺 Harta zilei]]** — ziua curentă poziționată în afara grafului, la dreapta,
+> cu ședințele Teams dedesubt. Poziții fixe, ce graph view-ul nu poate face.
+
+Notele marcate `#azi-focus` (nota zilei, **magenta**) și `#azi` (proiectele atinse, **verde**) —
+în [[Graph view - ce e util|graph view]] ies din paleta restului. Le mută automat
+`scripts/sync-daily.ps1`.
 
 ```dataview
 LIST
