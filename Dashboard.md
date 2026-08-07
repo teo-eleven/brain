@@ -14,6 +14,26 @@ Pagina de start de zi cu zi. Pune-o la **bookmark** (`Ctrl+P` → *Bookmark curr
 - Daily note de azi: `Ctrl+P` → *Open today's daily note*
 - [[Inbox]] — ce am aruncat aici și n-am procesat
 
+### Unde am lucrat azi
+
+Notele marcate `#azi` — în [[Graph view - ce e util|graph view]] sunt colorate **verde aprins**,
+deci le vezi dintr-o privire. Le mută automat `scripts/sync-daily.ps1`.
+
+```dataview
+LIST
+FROM #azi
+SORT file.name ASC
+```
+
+### Commit-urile de azi
+
+```dataview
+TABLE WITHOUT ID file.link AS "Zi", file.mtime AS "Actualizat"
+FROM "daily"
+SORT file.name DESC
+LIMIT 3
+```
+
 ## Hărți (MOC-uri)
 
 Punctele de intrare pe teme. Fiecare adună notele relevante.

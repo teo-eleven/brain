@@ -8,6 +8,13 @@
   "collapse-color-groups": false,
   "colorGroups": [
     {
+      "query": "tag:#azi",
+      "color": {
+        "a": 1,
+        "rgb": 3530874
+      }
+    },
+    {
       "query": "path:maps",
       "color": {
         "a": 1,

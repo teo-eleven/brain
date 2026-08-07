@@ -133,8 +133,8 @@ function Build-CommitSection {
     $blocks = [System.Text.StringBuilder]::new()
 
     foreach ($r in $Repos) {
-        $commits = Get-DayCommits -RepoPath $r.Path -Day $Day
-        if (-not $commits -or $commits.Count -eq 0) { continue }
+        $commits = @(Get-DayCommits -RepoPath $r.Path -Day $Day)
+        if ($commits.Count -eq 0) { continue }
         $any = $true
 
         [void]$blocks.AppendLine("### $($r.Name)")
@@ -312,11 +312,11 @@ Write-Host "  daily/$Date.md  -> $action ($($section.Commits) commit-uri)"
 if (-not $NoTag) {
     $tagTargets = @("daily/$Date.md")
     foreach ($r in $live) {
+        # @(...) obligatoriu: PowerShell despacheteaza array-ul de un element la
+        # return, iar .Count pe obiectul singular da $null, nu 1.
         $c = @(Get-DayCommits -RepoPath $r.Path -Day $Date)
-        Write-Host "    debug: $($r.Name) -> $($c.Count) commit-uri, nota='$($r.Note)'" -ForegroundColor DarkCyan
         if ($c.Count -gt 0 -and $r.Note) { $tagTargets += $r.Note }
     }
-    Write-Host "    debug: tinte tag = $($tagTargets -join ' | ')" -ForegroundColor DarkCyan
 
     $tag = Set-TodayTag -VaultPath $Vault -TargetRelPaths $tagTargets
     if ($tag.Added.Count)   { Write-Host "  #azi pus pe    : $($tag.Added -join ', ')" }

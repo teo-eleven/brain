@@ -32,13 +32,21 @@ Meta-harta: cum funcționează sistemul, nu ce e în el. Parte din [[MOC Program
 - [[ADR 001 - Vault local markdown pe D]]
 - [[ADR 002 - Structura vault fara foldere adanci]]
 
+## Automatizare
+
+- [[Sincronizare vault cu commit-urile git]] — commit-urile zilei intră singure în daily note,
+  iar notele atinse se colorează în graf
+
 ## Proiectul
 
 - [[Second Brain]] — vaultul ca proiect: ce automatizez, ce nu
 
 ## De experimentat #question
 
-- [ ] Hook de Claude Code care scrie automat în daily note la finalul sesiunii
-- [ ] Copiere automată a vaultului ca backup (fără git — vezi [[ADR 001 - Vault local markdown pe D]])
+- [x] Scriere automată în daily note a ce am lucrat — rezolvat cu `scripts/sync-daily.ps1`,
+      vezi [[Sincronizare vault cu commit-urile git]]
+- [x] Backup automat — rezolvat cu git + remote privat, **înlocuiește** decizia din
+      [[ADR 001 - Vault local markdown pe D]]
 - [ ] Dataview: dashboard per proiect
 - [ ] Merită Templater pentru linkuri ieri/mâine în daily note?
+- [ ] Task Scheduler: să ruleze `sync-daily.ps1` singur, la o oră fixă

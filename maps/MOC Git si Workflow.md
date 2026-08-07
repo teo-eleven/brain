@@ -23,6 +23,11 @@ Parte din [[MOC Programare]].
 
 - [[Git cheatsheet]]
 
+## Git ca sursă de context
+
+- [[Sincronizare vault cu commit-urile git]] — `git log` alimentează daily note-ul automat;
+  eu scriu de ce, git scrie ce
+
 ## Legat
 
 - [[MOC DevOps si Deploy]] — CI pleacă de la push

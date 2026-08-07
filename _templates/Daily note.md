@@ -20,6 +20,9 @@ type: daily
 <!-- Timestamps pentru ce s-a întâmplat: erori, deploy-uri, discuții. Ctrl+P → "insert current time" -->
 - {{time}} —
 
+<!-- COMMITS:START - generat de scripts/sync-daily.ps1, nu edita intre markeri -->
+<!-- COMMITS:END -->
+
 ## Deschis / de continuat
 <!-- Cu ce încep mâine. Scrie asta ÎNAINTE să închizi laptopul — economisești 20 min mâine dimineață. -->
 -
