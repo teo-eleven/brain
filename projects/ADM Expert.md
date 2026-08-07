@@ -61,14 +61,29 @@ doar merge-uri din `dev` (ultimul: `7f9c97d "Merge branch 'dev'"`, 5 aug). Fluxu
 feature branch  →  PR  →  dev  →  main
 ```
 
-### Branch-uri deschise
+### Ce e livrat pe `dev`
 
-| Branch | Ce conține | Stare |
+| PR | Ce | Când |
 |---|---|---|
-| `refactor/redenumire-firma-in-companie` | redenumirea firmă → companie (`35fa2e9`) | **doar pe branch-ul lui** — 4 commit-uri înaintea lui `origin/dev`, 2 în urmă |
-| `fix/animatii-ui` | munca de UI fără animații | parcat |
-| `modificari-minodora` | cele 8 cerințe din documentul Minodorei | nemerged |
-| `fix/retusuri-finale` · `fix/retusuri-minodora` | retușuri export buget | nemerged |
+| **#11** | refactor firmă → companie (`35fa2e9`) | 7 aug 11:30 |
+| #10 | blocare dubluri număr factură | 6 aug 15:40 |
+| #9 | administrare conturi + deploy pe server | 6 aug 14:00 |
+| #8 | autentificare + multi-tenancy | 5 aug 16:44 |
+
+`main` e sincron cu `dev` (`536148e`).
+
+### Branch-uri locale rămase
+
+Pe remote au mai rămas doar `dev`, `main` și `fix/production-ready` — restul au fost șterse după
+merge. Astea există **doar local**, ca resturi:
+
+| Branch local | Stare |
+|---|---|
+| `fix/animatii-ui` | parcat, niciodată urcat |
+| `modificari-minodora` · `fix/retusuri-*` · `feat/*` | deja livrate prin PR, se pot șterge |
+
+> [!tip] Curățenie
+> `git branch --merged origin/dev` arată care se pot șterge fără pierdere.
 
 ## Următorii pași
 
