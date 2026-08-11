@@ -20,6 +20,7 @@ Meta-harta: cum funcționează sistemul, nu ce e în el. Parte din [[MOC Program
 - [[Note orfane]] — cum le găsești și de ce contează
 - [[Conventii de denumire in vault]]
 - [[Graph view - ce e util]] — și ce e doar spectaculos
+- [[Graph view - vederi]] — filtrele pe care le comuți după întrebare, plus capcanele configului
 
 ## Referință
 
