@@ -79,6 +79,9 @@ $C_FOCUS      = '#ff2d95'   # magenta - nodul zilei
 $C_TODAY      = '#35e07a'   # verde   - notele atinse azi
 $C_TEAMS      = '#00d9ff'   # cyan    - sedinte si task-uri din Teams
 $C_ANCHOR     = '#8a93a5'   # gri     - ancorele vaultului
+$C_PAST_NEAR  = '#a78bfa'   # violet  - ziua precedenta, cea mai relevanta
+$C_PAST       = '#6f7689'   # gri-rece - restul zilelor, tot mai in fundal
+$MAX_PAST_DAYS = 6          # cate zile trecute tin pe canvas
 
 function Write-Utf8 {
     param([string]$Path, [string]$Content)
@@ -400,17 +403,20 @@ function Build-Canvas {
     $dashId = $anchorIds['Dashboard.md']
 
     # ---- zona AZI, impinsa clar la dreapta ----
+    # Nodul zilei e deliberat cel mai mare de pe canvas: in graph view marimea
+    # unui nod e data de cate linkuri primeste si nu se poate forta, aici da.
     $aziX     = 560
-    $aziCount = 1 + $TouchedNotes.Count
-    $aziH     = 340 + ($TouchedNotes.Count * 210) + 80
+    $aziW     = 720
+    $focusH   = 460
+    $aziH     = $focusH + 40 + ($TouchedNotes.Count * 210) + 80
 
     [void]$nodes.Add((New-CanvasNode -Id (NextId) -Type 'group' -Label "AZI · $Day" `
-        -X ($aziX - 40) -Y -420 -W 580 -H $aziH -Color $C_FOCUS))
+        -X ($aziX - 40) -Y -420 -W ($aziW + 80) -H $aziH -Color $C_FOCUS))
 
     $focusId   = NextId
     $focusFile = "daily/$Day.md"
     [void]$nodes.Add((New-CanvasNode -Id $focusId -Type 'file' -File $focusFile `
-        -X $aziX -Y -360 -W 500 -H 300 -Color $C_FOCUS))
+        -X $aziX -Y -360 -W $aziW -H $focusH -Color $C_FOCUS))
 
     # nota zilei ramane legata de vault
     if ($dashId) {
@@ -418,17 +424,63 @@ function Build-Canvas {
             -To $dashId -ToSide 'right' -Color $C_FOCUS -Label 'ziua curentă'))
     }
 
-    $y = -20
+    # proiectele atinse azi incep sub nota zilei, care e acum mai inalta
+    $y = -360 + $focusH + 40
     $projIds = @()
     foreach ($p in $TouchedNotes) {
         if (-not (Test-Path (Join-Path $VaultPath ($p -replace '/', '\')))) { continue }
         $id = NextId
         [void]$nodes.Add((New-CanvasNode -Id $id -Type 'file' -File $p `
-            -X $aziX -Y $y -W 500 -H 180 -Color $C_TODAY))
+            -X $aziX -Y $y -W $aziW -H 180 -Color $C_TODAY))
         [void]$edges.Add((New-CanvasEdge -Id (NextId) -From $id -FromSide 'top' `
             -To $focusId -ToSide 'bottom' -Color $C_TODAY))
         $projIds += $id
         $y += 210
+    }
+
+    # ---- coloana ZILE TRECUTE, intre ancore si AZI ----
+    # Noduri de tip 'file': click pe ele deschide nota zilei respective.
+    # Legate in lant cronologic, ca sa se vada continuitatea zilelor.
+    $pastIds  = @()
+    $dailyDir = Join-Path $VaultPath 'daily'
+    if (Test-Path $dailyDir) {
+        # @(...) obligatoriu: un singur fisier s-ar despacheta si .Count ar da $null
+        $past = @(Get-ChildItem -Path $dailyDir -Filter '*.md' -File |
+            Where-Object { $_.BaseName -match '^\d{4}-\d{2}-\d{2}$' -and $_.BaseName -lt $Day } |
+            Sort-Object BaseName -Descending |
+            Select-Object -First $MAX_PAST_DAYS)
+
+        if ($past.Count) {
+            $pastX    = -180
+            $pastStep = 130
+            $groupH   = 80 + ($past.Count * $pastStep)
+
+            [void]$nodes.Add((New-CanvasNode -Id (NextId) -Type 'group' `
+                -Label 'ZILE TRECUTE · click pe o zi ca sa o deschizi' `
+                -X ($pastX - 40) -Y -420 -W 400 -H $groupH -Color $C_PAST))
+
+            $py = -360
+            $i  = 0
+            foreach ($d in $past) {
+                # doar ziua precedenta e scoasa in fata; restul raman in fundal
+                $col = if ($i -eq 0) { $C_PAST_NEAR } else { $C_PAST }
+                $id  = NextId
+                [void]$nodes.Add((New-CanvasNode -Id $id -Type 'file' `
+                    -File "daily/$($d.BaseName).md" `
+                    -X $pastX -Y $py -W 320 -H 110 -Color $col))
+                $pastIds += $id
+                $py += $pastStep
+                $i++
+            }
+
+            # cea mai recenta se leaga de AZI; restul se inlantuie de jos in sus
+            [void]$edges.Add((New-CanvasEdge -Id (NextId) -From $pastIds[0] -FromSide 'right' `
+                -To $focusId -ToSide 'left' -Color $C_PAST_NEAR -Label $past[0].BaseName))
+            for ($j = 1; $j -lt $pastIds.Count; $j++) {
+                [void]$edges.Add((New-CanvasEdge -Id (NextId) -From $pastIds[$j] -FromSide 'top' `
+                    -To $pastIds[$j - 1] -ToSide 'bottom' -Color $C_PAST))
+            }
+        }
     }
 
     # ---- zona TEAMS, dedesubt ----
