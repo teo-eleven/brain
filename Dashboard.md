@@ -6,12 +6,12 @@ type: index
 
 # Dashboard
 
-Pagina de start de zi cu zi. Pune-o la **bookmark** (`Ctrl+P` → *Bookmark current file*) ca s-o ai mereu la un click.
+Pagina de start de zi cu zi. Pune-o la **bookmark** (`Ctrl+P` → _Bookmark current file_) ca s-o ai mereu la un click.
 
 ## Astăzi
 
 - [[00 START HERE]] — cum funcționează vaultul
-- Daily note de azi: `Ctrl+P` → *Open today's daily note*
+- Daily note de azi: `Ctrl+P` → _Open today's daily note_
 - [[Inbox]] — ce am aruncat aici și n-am procesat
 
 ### Unde am lucrat azi
@@ -42,15 +42,16 @@ LIMIT 3
 
 Punctele de intrare pe teme. Fiecare adună notele relevante.
 
-| | |
-|---|---|
-| [[MOC Programare]] — rădăcina | [[MOC Arhitectura]] |
-| [[MOC Python]] | [[MOC TypeScript]] |
-| [[MOC Backend si API]] | [[MOC Frontend]] |
-| [[MOC Baze de date]] | [[MOC DevOps si Deploy]] |
-| [[MOC Securitate]] | [[MOC Testare]] |
-| [[MOC Git si Workflow]] | [[MOC AI si LLM]] |
-| [[MOC Invatare si Cariera]] | [[MOC Vault - cum functioneaza]] |
+|                               |                                  |
+| ----------------------------- | -------------------------------- |
+| [[MOC Programare]] — rădăcina | [[MOC Arhitectura]]              |
+| [[MOC Python]]                | [[MOC TypeScript]]               |
+| [[MOC Backend si API]]        | [[MOC Frontend]]                 |
+| [[MOC Baze de date]]          | [[MOC DevOps si Deploy]]         |
+| [[MOC Securitate]]            | [[MOC Testare]]                  |
+| [[MOC Git si Workflow]]       | [[MOC AI si LLM]]                |
+| [[MOC Invatare si Cariera]]   | [[MOC Vault - cum functioneaza]] |
+| [[MOC Sedinte]]               |                                  |
 
 ## Proiecte active
 
@@ -118,10 +119,10 @@ SORT created DESC
 
 Funcționează din prima, fără plugin. Lipește în bara de căutare (`Ctrl+Shift+F`):
 
-| Ce vrei | Query de căutare |
-|---|---|
-| Taskuri nebifate | `task-todo:""` |
-| Taskuri nebifate doar în daily | `path:daily task-todo:""` |
-| Note incomplete | `tag:#seed OR tag:#question` |
-| Tot despre Python | `tag:#python` |
-| Note fără nicio legătură | Graph view → filtrează, vezi [[Note orfane]] |
+| Ce vrei                        | Query de căutare                             |
+| ------------------------------ | -------------------------------------------- |
+| Taskuri nebifate               | `task-todo:""`                               |
+| Taskuri nebifate doar în daily | `path:daily task-todo:""`                    |
+| Note incomplete                | `tag:#seed OR tag:#question`                 |
+| Tot despre Python              | `tag:#python`                                |
+| Note fără nicio legătură       | Graph view → filtrează, vezi [[Note orfane]] |

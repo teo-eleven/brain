@@ -18,6 +18,7 @@ Parte din [[MOC Programare]].
 
 - [[SQL injection]] — parametrizare, nu escaping
 - [[XSS]] — escape la ieșire, nu la intrare
+- [[Prompt injection - aparare]] — aceeași familie, dar datele _sunt_ instrucțiunile
 
 ## Identitate
 

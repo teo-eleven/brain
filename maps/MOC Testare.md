@@ -20,6 +20,14 @@ Parte din [[MOC Programare]].
 - [[Test doubles - mock stub fake spy]] — patru lucruri diferite, un singur cuvânt folosit
 - [[pytest cheatsheet]]
 
+## Evaluarea sistemelor AI
+
+Teste cu toleranță la nedeterminism — aceeași disciplină, alt tip de verdict.
+
+- [[Metrici pentru agenti AI]] — cele 4 Primary și pragurile pe clasă de risc
+- [[Ground truth pentru evaluare]] — fabricat vs real, și ce testează fiecare
+- [[LLM as judge]] — când judecata unui model e test și când e doar cost
+
 ## Legat
 
 - [[Debugging metodic]] — un bug reprodus e un test care lipsește
