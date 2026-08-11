@@ -27,14 +27,32 @@
 
 [CmdletBinding()]
 param(
-    [string]   $Vault = (Split-Path -Parent $PSScriptRoot),
+    [string]   $Vault,
     [string]   $Date,
     [switch]   $NoPush,
     [switch]   $NoTag
 )
 
+# $PSScriptRoot e gol in blocul param() cand scriptul e pornit cu `powershell -File`
+# (merge doar cu `& script.ps1`). $MyInvocation.MyCommand.Path acopera ambele cazuri.
+# param() trebuie sa ramana prima instructiune, deci calculul se face aici.
+if (-not $Vault) {
+    $scriptDir = if ($PSScriptRoot) {
+        $PSScriptRoot
+    } else {
+        Split-Path -Parent $MyInvocation.MyCommand.Path
+    }
+    $Vault = Split-Path -Parent $scriptDir
+}
+
 $ErrorActionPreference = 'Stop'
 $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
+# $OutputEncoding de mai sus spune doar cum TRIMIT text catre procesele native.
+# Asta spune cum DECODEZ ce scriu ele inapoi. Fara ea, mesajele de commit cu diacritice
+# ies corupte ("tranzi╚¢ii" in loc de "tranzitii") cand scriptul e pornit din alt shell
+# decat o consola PowerShell - exact cazul hook-ului, care il lanseaza cu `powershell -File`.
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 # ---------------------------------------------------------------------------
 # Repo-uri urmarite. Adauga aici cand pornesti un proiect nou:
@@ -44,6 +62,8 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $TRACKED = @(
     @{ Name = 'ecf-adm-expert';      Path = 'C:\Users\teodor.fotciuc\ecf-adm-expert';      Note = 'projects/ADM Expert.md' }
     @{ Name = 'voice-chat-pizzerie'; Path = 'D:\teodor.fotciuc\voice-chat-pizzerie';       Note = 'projects/Pizza Punto.md' }
+    @{ Name = 'ecf-inventory-management'; Path = 'D:\teodor.fotciuc\ecf-inventory-management'; Note = 'projects/Inventory Pro.md' }
+    @{ Name = 'ecf_app_web-doc_extract_studio'; Path = 'D:\teodor.fotciuc\ecf_app_web-doc_extract_studio'; Note = 'projects/QA AI Agent.md' }
 )
 
 $MARK_START   = '<!-- COMMITS:START - generat de scripts/sync-daily.ps1, nu edita intre markeri -->'
