@@ -87,6 +87,34 @@ mediul devine o minciună față de `uv.lock`.
 
 **Capcana de începător:** activezi venv-ul manual și dai `pip install` peste un proiect uv — pachetul intră în mediu dar nu în `uv.lock`, iar la următorul `uv sync` dispare fără avertisment și codul crapă în CI.
 
+## Pe Windows: activarea venv-ului
+
+`uv` creează `.venv/` ca orice alt tool, dar PowerShell **refuză să execute `Activate.ps1`** dacă
+politica de execuție e restrictivă. Eroarea e „running scripts is disabled on this system" și nu
+spune ce să faci.
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+& .\.venv\Scripts\Activate.ps1
+```
+
+`-Scope Process` schimbă politica **doar pentru fereastra curentă** — se pierde când o închizi.
+Asta e forma corectă: nu umbli la politica mașinii pentru o activare.
+
+Verifici ce ai cu `Get-ExecutionPolicy -Scope CurrentUser` și `-Scope Process`. Dacă amândouă
+dau `Undefined`, moștenești politica de mașină — de regulă `Restricted` pe Windows client, deci
+scripturile sunt blocate.
+
+**Dar cu uv rar ai nevoie de asta.** `uv run <comandă>` execută în mediul proiectului fără nicio
+activare, deci întreaga problemă dispare:
+
+```powershell
+uv run python -m qaharness      # in loc de: activezi, apoi rulezi
+uv run pytest
+```
+
+Activarea manuală rămâne utilă doar când vrei un shell interactiv lung în mediul respectiv.
+
 ## Legat
 
 - [[Docker Compose - stack local]]
