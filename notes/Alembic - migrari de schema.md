@@ -77,6 +77,33 @@ docker compose run --rm migrate
 - La o scădere de scor, am un mod rapid să exclud schema înainte să investighez
   prompt-ul?
 
+## Cum învăț asta
+
+**Documentație:** https://alembic.sqlalchemy.org
+
+**Primul pas practic** (30 de minute):
+
+1. `pip install alembic sqlalchemy` și `alembic init migrations`; pui
+   `sqlalchemy.url` în `alembic.ini` și `target_metadata = Base.metadata` în
+   `migrations/env.py`.
+2. Scrii un model cu două coloane, apoi
+   `alembic revision --autogenerate -m "sectiuni"` și **citești** fișierul generat.
+3. `alembic upgrade head`, verifici cu `alembic current`, apoi
+   `alembic downgrade -1` — tabela dispare, deci lanțul merge în ambele sensuri.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce                                          | De ce în ordinea asta                                      |
+| ----- | ------------------------------------------- | ---------------------------------------------------------- |
+| 1     | Revizii, `down_revision`, `alembic_version` | Fără lanț nu înțelegi ce înseamnă `head`                   |
+| 2     | `--autogenerate` și ce NU detectează        | Îl folosești din prima zi, deci trebuie să-i știi limitele |
+| 3     | `heads` multiple, merge, migrări de date    | Apar abia când lucrezi pe branch-uri paralele              |
+
+**Capcana de începător:** redenumești o coloană și lași autogenerate să decidă —
+el scrie `drop_column` + `add_column`, nu `alter_column`, iar `upgrade head` îți
+șterge tăcut datele din coloana veche. În aval vezi câmpuri goale și dai vina pe
+model sau pe prompt, nu pe DDL.
+
 ## Legat
 
 - [[Docker Compose - stack local]]

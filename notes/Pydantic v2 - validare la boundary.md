@@ -75,6 +75,30 @@ except ValidationError as e:
 - Configul din env e validat integral la boot, sau unele variabile sunt citite
   lazy, târziu?
 
+## Cum învăț asta
+
+**Documentație:** https://docs.pydantic.dev
+
+**Primul pas practic** (30 de minute):
+
+1. `pip install pydantic` și scrie un `class Sectiune(BaseModel)` cu
+   `titlu: str = Field(min_length=1)` și `pagina: int = Field(ge=1)`.
+2. `Sectiune.model_validate({"titlu": "Intro", "pagina": 1})` — trece.
+3. `Sectiune.model_validate({"titlu": "", "pagina": "x"})` într-un `try` și
+   printează `e.errors()` — vezi lista de dict-uri cu `loc`, `type`, `msg`.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce                                                      | De ce în ordinea asta                                        |
+| ----- | ------------------------------------------------------- | ------------------------------------------------------------ |
+| 1     | Modele + `Field` + forma lui `ValidationError`          | Fără să știi cum arată eroarea nu poți loga util             |
+| 2     | `@field_validator` / `@model_validator`                 | Regulile între câmpuri vin după ce tipurile stau în picioare |
+| 3     | `model_validate_json` pe output de LLM + `BaseSettings` | Cazurile reale murdare, unde validarea chiar te salvează     |
+
+**Capcana de începător:** prinzi `ValidationError` într-un `except Exception`
+și întorci `[]` sau `None` — parsarea eșuată devine „zero rezultate", sistemul
+raportează succes pe date pierdute și nu ai nici măcar payload-ul brut în log.
+
 ## Legat
 
 - [[Validarea output-ului LLM]]

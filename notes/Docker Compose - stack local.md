@@ -67,6 +67,32 @@ docker compose up -d --build backend     # rebuild doar un serviciu
 - Ce servicii ar trebui mutate pe `profiles`, ca `docker compose up` implicit să
   fie mai ușor?
 
+## Cum învăț asta
+
+**Documentație:** https://docs.docker.com/compose
+
+**Primul pas practic** (30 de minute):
+
+1. Un `compose.yaml` cu `postgres:16` (env `POSTGRES_PASSWORD`) și un
+   `healthcheck: test: ["CMD-SHELL", "pg_isready -U postgres"]`, `interval: 5s`.
+2. Adaugi un al doilea serviciu `app` (orice imagine cu `psql`) cu
+   `depends_on: postgres: condition: service_healthy`.
+3. `docker compose up -d`, apoi `docker compose ps` — vezi `postgres` trecând
+   prin `starting` → `healthy` și `app` pornind abia după.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce                                                | De ce în ordinea asta                                        |
+| ----- | ------------------------------------------------- | ------------------------------------------------------------ |
+| 1     | `services`, porturi, env, `docker compose config` | Vezi YAML-ul rezolvat înainte să depanezi ceva ce nu e acolo |
+| 2     | `healthcheck` + `depends_on: condition`           | Aici se rezolvă 90% din „merge a doua oară"                  |
+| 3     | Volume (named vs bind) și `profiles`              | Persistența și opționalele contează abia pe stack mare       |
+
+**Capcana de începător:** `depends_on` fără `condition: service_healthy` —
+containerul pornește imediat ce procesul vecin există, lovește o bază care încă
+face `initdb` și cade; a doua rulare merge, deci crezi că a fost o întâmplare și
+bug-ul apare abia în CI, pe mașină curată.
+
 ## Legat
 
 - [[Alembic - migrari de schema]]

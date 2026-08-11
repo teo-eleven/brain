@@ -71,6 +71,32 @@ scrie de două ori duplică date.
 - Bisecția recursivă are limită de adâncime? Ce se întâmplă pe un document
   patologic?
 
+## Cum învăț asta
+
+**Documentație:** https://docs.celeryq.dev
+
+**Primul pas practic** (30 de minute):
+
+1. `docker run -d -p 6379:6379 redis` și `pip install "celery[redis]"`.
+2. În `tasks.py`: `REDIS = "redis://localhost:6379/0"`, apoi
+   `app = Celery("demo", broker=REDIS, backend=REDIS)` și un
+   `@app.task def aduna(a, b)`.
+3. `celery -A tasks worker --loglevel=info` într-un terminal; în altul, din
+   `python`: `r = aduna.delay(2, 3)`, apoi `r.get(timeout=10)` → vezi `5` și
+   task-ul apărând în logul workerului.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce                                   | De ce în ordinea asta                                |
+| ----- | ------------------------------------ | ---------------------------------------------------- |
+| 1     | Broker, task, worker, result backend | Fără cele patru piese nu înțelegi unde stă un mesaj  |
+| 2     | Retry, `acks_late`, idempotență      | Livrarea dublă e regula, nu excepția                 |
+| 3     | `beat` și task-uri periodice         | Planificarea are sens abia după ce execuția e solidă |
+
+**Capcana de începător:** pornești două containere `celery-beat` (sau scalezi
+serviciul de beat) — fiecare trimite aceleași task-uri programate, deci joburile
+periodice rulează dublu și scriu date duplicate fără nicio eroare vizibilă.
+
 ## Legat
 
 - [[FastAPI - API async]]

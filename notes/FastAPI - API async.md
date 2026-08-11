@@ -76,11 +76,11 @@ docker compose logs -f backend
 
 **Ordinea în care merită citit:**
 
-| Etapă | Ce | De ce în ordinea asta |
-|---|---|---|
-| 1 | Path/query params + `response_model` | E scheletul oricărei rute; fără el restul n-are unde se prinde |
-| 2 | `Depends()` și override în teste | Sesiunea DB și autentificarea intră aici, nu în corpul rutei |
-| 3 | `async def` vs `def` + rute care pun în coadă | Abia după ce ai I/O real vezi de ce contează event loop-ul |
+| Etapă | Ce                                            | De ce în ordinea asta                                          |
+| ----- | --------------------------------------------- | -------------------------------------------------------------- |
+| 1     | Path/query params + `response_model`          | E scheletul oricărei rute; fără el restul n-are unde se prinde |
+| 2     | `Depends()` și override în teste              | Sesiunea DB și autentificarea intră aici, nu în corpul rutei   |
+| 3     | `async def` vs `def` + rute care pun în coadă | Abia după ce ai I/O real vezi de ce contează event loop-ul     |
 
 **Capcana de începător:** pui `async def` pe o rută care cheamă ceva blocant
 (`requests.get`, driver DB sincron) — nu crapă nimic, dar blochezi event loop-ul

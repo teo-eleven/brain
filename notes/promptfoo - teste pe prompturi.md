@@ -68,6 +68,26 @@ tests:
 - Pragurile de `cost` și `latency` sunt setate din date reale sau ghicite?
 - Cine se uită la comentariul din PR când matricea semnalează o regresie?
 
+## Cum învăț asta
+
+**Documentație:** https://promptfoo.dev/docs
+
+**Primul pas practic** (30 de minute):
+
+1. `npx promptfoo@latest init` într-un folder gol — generează `promptfooconfig.yaml`.
+2. Pune un singur prompt cu variabilă (`{{tema}}`), doi provideri (`openai:gpt-4o-mini`, `google:gemini-2.0-flash`) și două cazuri cu `assert: - type: contains`.
+3. `npx promptfoo@latest eval`, apoi `npx promptfoo@latest view` — matricea prompt × model apare comparativ în browser.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce                                              | De ce în ordinea asta                                |
+| ----- | ----------------------------------------------- | ---------------------------------------------------- |
+| 1     | `prompts` / `providers` / `tests`               | Cele trei axe ale matricei; fără ele configul e opac |
+| 2     | Assertions deterministe (`contains`, `is-json`) | Prind regresiile de format ieftin, fără judge        |
+| 3     | `llm-rubric`, `cost`, `latency`, CI             | Scump și subiectiv — merită abia după ce baza trece  |
+
+**Capcana de începător:** rulezi matricea completă pe un model scump cu zeci de cazuri „ca să vezi ce iese" — plătești un eval întreg pe un prompt pe care oricum îl schimbi în cinci minute.
+
 ## Legat
 
 - [[Evals inainte de prompt changes]]

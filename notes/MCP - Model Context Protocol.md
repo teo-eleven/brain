@@ -68,6 +68,26 @@ npx @modelcontextprotocol/inspector  # inspector, pentru debug pe un server
   terminal fără să scriu comenzi?
 - Apelurile MCP apar ca span-uri separate în Langfuse sau se pierd în trace?
 
+## Cum învăț asta
+
+**Documentație:** https://modelcontextprotocol.io
+
+**Primul pas practic** (30 de minute):
+
+1. `uv add "fastmcp>=2.0"`, apoi `server.py`: `mcp = FastMCP("test")`, o funcție decorată `@mcp.tool` care întoarce ceva simplu, și `mcp.run()` la final (stdio implicit).
+2. `uv run fastmcp dev server.py` — inspectorul se deschide în browser și poți apela unealta manual.
+3. `claude mcp add test -- uv run python server.py`, apoi în Claude Code cere ceva ce declanșează unealta — o vezi apelată din client.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce                     | De ce în ordinea asta                                   |
+| ----- | ---------------------- | ------------------------------------------------------- |
+| 1     | tools pe stdio         | Cel mai scurt drum de la zero la o unealtă chemată real |
+| 2     | resources și prompts   | Se înțeleg prin contrast cu tools, nu izolat            |
+| 3     | Streamable HTTP + auth | Rețeaua aduce toate problemele de securitate deodată    |
+
+**Capcana de începător:** scrii pe stdout în serverul stdio (un `print()` de debug) — poluezi canalul JSON-RPC, clientul se deconectează cu o eroare de parsare fără legătură vizibilă cu cauza.
+
 ## Legat
 
 - [[Tool use - function calling]]

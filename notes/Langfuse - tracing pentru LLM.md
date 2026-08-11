@@ -88,11 +88,11 @@ docker compose -f stack/langfuse/docker-compose.yml ps   # toate 6 healthy?
 
 **Ordinea în care merită citit:**
 
-| Etapă | Ce | De ce în ordinea asta |
-|---|---|---|
-| 1 | trace / span / generation | Fără ierarhie, UI-ul e o listă fără sens |
-| 2 | `@observe` și contextul curent | Aici se pierd metadatele, deci aici se învață |
-| 3 | Scores și `model_prices.json` | Evaluarea și costul au nevoie de trace-uri corecte întâi |
+| Etapă | Ce                             | De ce în ordinea asta                                    |
+| ----- | ------------------------------ | -------------------------------------------------------- |
+| 1     | trace / span / generation      | Fără ierarhie, UI-ul e o listă fără sens                 |
+| 2     | `@observe` și contextul curent | Aici se pierd metadatele, deci aici se învață            |
+| 3     | Scores și `model_prices.json`  | Evaluarea și costul au nevoie de trace-uri corecte întâi |
 
 **Capcana de începător:** chemi `update_current_generation()` după ce `create()` s-a întors — span-ul e deja închis, apelul e no-op tăcut, iar tu cauți în UI câmpuri care n-au fost niciodată scrise.
 

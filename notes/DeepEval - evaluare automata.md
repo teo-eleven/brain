@@ -64,6 +64,26 @@ uv run deepeval test run evals/deepeval/ -n 4     # paralel
 Regula de ordine: dacă o metrică poate fi scrisă determinist, **nu** o dai pe
 mâna unui judge. Judge-ul e pentru ce e ireductibil subiectiv.
 
+## Cum învăț asta
+
+**Documentație:** https://docs.confident-ai.com
+
+**Primul pas practic** (30 de minute):
+
+1. `uv add deepeval` și exportă `OPENAI_API_KEY` (judge-ul implicit are nevoie de el).
+2. Scrie `test_prim.py` cu un `LLMTestCase(input=..., actual_output=..., expected_output=...)` și `AnswerRelevancyMetric(threshold=0.7)`, verificat prin `assert_test`.
+3. Rulează `uv run deepeval test run test_prim.py` — vezi scorul, pragul și pass/fail în terminal.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce                                     | De ce în ordinea asta                                     |
+| ----- | -------------------------------------- | --------------------------------------------------------- |
+| 1     | `LLMTestCase` + metrici deterministe   | Gratuite și reproductibile, înveți forma fără să plătești |
+| 2     | Metrici LLM-as-judge                   | Au sens doar când știi ce nu poate fi verificat mecanic   |
+| 3     | Datasets, baseline, integrare Langfuse | Automatizarea vine după ce un caz singular e corect       |
+
+**Capcana de începător:** pui același model și ca evaluat, și ca judecător — scorurile ies umflate constant, baseline-ul devine fals, iar regresiile reale trec nedetectate prin CI.
+
 ## Legat
 
 - [[Langfuse - tracing pentru LLM]]

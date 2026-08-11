@@ -67,6 +67,26 @@ mediul devine o minciună față de `uv.lock`.
 - Cât de des rulez `uv lock --upgrade` și cine verifică că evaluările încă trec
   după upgrade?
 
+## Cum învăț asta
+
+**Documentație:** https://docs.astral.sh/uv
+
+**Primul pas practic** (30 de minute):
+
+1. `uv init test-uv && cd test-uv` — apar `pyproject.toml`, `.python-version`, `main.py`.
+2. `uv add httpx` și uită-te ce s-a schimbat: `uv.lock` apare, `.venv/` se creează singur.
+3. `uv run main.py` rulează fără activare de venv; compară cu `python -m venv .venv2 && .venv2/Scripts/pip install httpx` cronometrat — diferența se vede din prima.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce                                           | De ce în ordinea asta                                    |
+| ----- | -------------------------------------------- | -------------------------------------------------------- |
+| 1     | `uv init` / `uv add` / `uv run`              | Bucla zilnică; acoperă 90% din utilizare                 |
+| 2     | `uv.lock` vs `uv sync`                       | Aici se naște reproductibilitatea, și tot aici se pierde |
+| 3     | `--frozen`, grupuri dev, `uv python install` | CI și Docker au nevoie de ele, dar abia după bază        |
+
+**Capcana de începător:** activezi venv-ul manual și dai `pip install` peste un proiect uv — pachetul intră în mediu dar nu în `uv.lock`, iar la următorul `uv sync` dispare fără avertisment și codul crapă în CI.
+
 ## Legat
 
 - [[Docker Compose - stack local]]
