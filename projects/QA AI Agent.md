@@ -68,5 +68,3 @@ vin după.
 ## Note legate
 
 - [[MOC AI si LLM]] · [[MOC Testare]] · [[Observability - logs metrics traces]]
-
-#azi
