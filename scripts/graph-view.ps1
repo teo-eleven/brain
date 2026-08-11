@@ -40,8 +40,8 @@ $COLOR_GROUPS = @(
     @{ query = 'tag:#azi';       rgb = 3530874  },
     @{ query = 'path:daily';     rgb = 10980346 },
     @{ query = 'path:projects';  rgb = 16098596 },
-    @{ query = 'path:maps';      rgb = 2282990  },
-    @{ query = 'path:notes';     rgb = 6333434  }
+    @{ query = 'path:maps';      rgb = 2282478  },
+    @{ query = 'path:notes';     rgb = 6333946  }
 )
 
 # ---------------------------------------------------------------------------
@@ -162,7 +162,7 @@ function Show-CurrentConfig {
     if ($cfg.colorGroups) { $groupCount = @($cfg.colorGroups).Count }
 
     Write-Host ""
-    Write-Host "Config curent — $graphPath" -ForegroundColor Cyan
+    Write-Host "Config curent: $graphPath" -ForegroundColor Cyan
     Write-Host "  Filtru            : $($cfg.search)"
     Write-Host "  Grupuri de culoare: $groupCount"
     Write-Host ""
@@ -182,7 +182,7 @@ function Show-CurrentConfig {
     if (Test-ObsidianRunning) {
         Write-Host "Obsidian ruleaza acum (scrierea s-ar pierde la inchidere)." -ForegroundColor Yellow
     } else {
-        Write-Host "Obsidian nu ruleaza — se poate scrie fara probleme." -ForegroundColor DarkGray
+        Write-Host "Obsidian nu ruleaza - se poate scrie fara probleme." -ForegroundColor DarkGray
     }
 }
 
@@ -194,11 +194,11 @@ function Show-ManualInstructions {
     Write-Host "Obsidian rescrie .obsidian\graph.json la iesirea completa din aplicatie," -ForegroundColor Yellow
     Write-Host "asa ca orice scriere de acum s-ar pierde. NU am modificat nimic." -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "Varianta rapida — lipeste filtrul asta in lupa din graph view:" -ForegroundColor Cyan
+    Write-Host "Varianta rapida - lipeste filtrul asta in lupa din graph view:" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "  $Filter"
     Write-Host ""
-    Write-Host "Varianta automata — inchide complet Obsidian si ruleaza:" -ForegroundColor Cyan
+    Write-Host "Varianta automata - inchide complet Obsidian si ruleaza:" -ForegroundColor Cyan
     Write-Host "  .\scripts\graph-view.ps1 -View $View"
     Write-Host ""
     Write-Host "Sau lasa scriptul sa astepte inchiderea:" -ForegroundColor Cyan
@@ -252,7 +252,7 @@ if (Wait-ForObsidianExit) {
 }
 
 Write-Host ""
-Write-Host "Timeout dupa $WAIT_TIMEOUT_MINUTES de minute — Obsidian tot ruleaza." -ForegroundColor Red
+Write-Host "Timeout dupa $WAIT_TIMEOUT_MINUTES de minute - Obsidian tot ruleaza." -ForegroundColor Red
 Write-Host "Nu am scris nimic. Inchide Obsidian si ruleaza din nou:" -ForegroundColor Red
 Write-Host "  .\scripts\graph-view.ps1 -View $View"
 exit 1
