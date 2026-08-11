@@ -40,9 +40,16 @@ ajunsese la 150 de note și un graf ilizibil.
 
 ## Automatizare
 
-`scripts/sync-daily.ps1` scrie commit-urile zilei în nota zilei, între markeri, și mută tagurile
-`#azi-focus` / `#azi`. Rulează singur la fiecare `git commit`, dintr-un hook `PostToolUse`
-configurat în `~/.claude/settings.json`.
+Trei unelte în `scripts/`, documentate în [[Scripturi de vault]]:
+
+| Script           | Ce face                                                                                                                                               |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sync-daily.ps1` | scrie commit-urile zilei în nota zilei, mută tagurile, regenerează canvas-ul. **Rulează singur la fiecare `git commit`**, dintr-un hook `PostToolUse` |
+| `vault-check.js` | linkuri moarte, orfani, schelete necompletate, hub-uri. Cod de ieșire `1` la probleme                                                                 |
+| `graph-view.ps1` | comută între cele patru vederi de graf, cu backup automat                                                                                             |
+
+**Notele se pot scrie cu Obsidian pornit** — le reîncarcă singur. Doar `.obsidian/` cere
+închiderea completă a aplicației.
 
 ## Capcane plătite
 
