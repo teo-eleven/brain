@@ -14,22 +14,25 @@
          in care ai lucrat. In graph view acestea se coloreaza aprins, deci vezi
          dintr-o privire unde ai umblat.
 
-      3. Face commit si push la vault.
+      3. Face commit LOCAL in vault.
+
+    Vaultul e local-only, fara remote: contine detalii din proiectele de
+    serviciu, care nu au ce cauta pe un cont personal de GitHub. Scriptul nu
+    face push si nu trebuie sa capete inapoi aceasta capacitate.
 
 .EXAMPLE
     .\sync-daily.ps1
-    Sincronizeaza ziua curenta si face push.
+    Sincronizeaza ziua curenta, cu commit local.
 
 .EXAMPLE
-    .\sync-daily.ps1 -Date 2026-08-06 -NoPush
-    Reconstruieste o zi anterioara, fara push.
+    .\sync-daily.ps1 -Date 2026-08-06
+    Reconstruieste o zi anterioara.
 #>
 
 [CmdletBinding()]
 param(
     [string]   $Vault,
     [string]   $Date,
-    [switch]   $NoPush,
     [switch]   $NoTag
 )
 
@@ -587,7 +590,7 @@ $cv = Build-Canvas -VaultPath $Vault -Day $Date -TouchedNotes $touchedNotes
 $teamsInfo = if ($cv.Teams) { "$($cv.Teams) intrări Teams" } else { "Teams neconectat" }
 Write-Host "  $CANVAS_FILE     -> $($cv.Nodes) noduri, $($cv.Edges) legături ($teamsInfo)"
 
-# commit + push vault
+# commit local in vault; fara push - vezi nota din .DESCRIPTION
 $dirty = git -C $Vault status --porcelain
 if (-not $dirty) {
     Write-Host ""
@@ -600,14 +603,4 @@ $msg = "notes: sync $Date - $($section.Commits) commit-uri din repo-urile urmari
 git -C $Vault commit -q -m $msg
 Write-Host ""
 Write-Host "  commit vault: $(git -C $Vault rev-parse --short HEAD)"
-
-if ($NoPush) {
-    Write-Host "  push sarit (-NoPush)" -ForegroundColor DarkGray
-} else {
-    git -C $Vault push -q origin main 2>$null | Out-Null
-    git -C $Vault fetch -q origin
-    $local  = git -C $Vault rev-parse HEAD
-    $remote = git -C $Vault rev-parse origin/main
-    if ($local -eq $remote) { Write-Host "  push: sincron cu origin/main" -ForegroundColor Green }
-    else { Write-Host "  push: NU a ajuns pe remote - verifica" -ForegroundColor Red; exit 1 }
-}
+Write-Host "  vault local-only, fara push" -ForegroundColor DarkGray

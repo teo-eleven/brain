@@ -3,7 +3,7 @@
   "search": "-path:_templates",
   "showTags": false,
   "showAttachments": false,
-  "hideUnresolved": true,
+  "hideUnresolved": false,
   "showOrphans": true,
   "collapse-color-groups": false,
   "colorGroups": [
@@ -60,6 +60,6 @@
   "repelStrength": 11,
   "linkStrength": 0.8,
   "linkDistance": 200,
-  "scale": 0.4999999999999989,
-  "close": false
+  "scale": 0.49999999999999856,
+  "close": true
 }
