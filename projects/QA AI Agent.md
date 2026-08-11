@@ -36,20 +36,39 @@ Agent ──► LiteLLM (gateway rutare model) ──► Model LLM
 
 ## Unde e codul
 
-- Local: `D:\teodor.fotciuc\ecf_app_web-doc_extract_studio`
-- Documentație / context: `D:\teodor.fotciuc\qa-ai-agent\docs` (**nu e repo git** — doar fișiere)
+Proiectul stă în **două repo-uri**:
+
+- **Agentul evaluat:** `D:\teodor.fotciuc\ecf_app_web-doc_extract_studio`
+  (remote: https://github.com/Econfaire/ecf_app_web-doc_extract_studio, branch `qa/langfuse-tracing`)
+- **Harness-ul de evaluare + documentația:** `D:\teodor.fotciuc\qa-ai-agent` — sub versionare din
+  **11.08, ora 08:31**. Structura: `src/qaharness/`, `evals/deepeval/`, `promptfoo/`,
+  `stack/langfuse/`, `docs/`. **Nu are remote — există doar local.**
 - Langfuse comun ECF: instanță pe rețeaua internă — nu trebuie pornit local ca să ai trace-uri
-  (adresa e în `qa-ai-agent/docs`, neversionat, ca să nu ajungă pe GitHub-ul personal)
-- Repo remote: https://github.com/Econfaire/ecf_app_web-doc_extract_studio
+  (adresa e în `qa-ai-agent/docs`, care nu pleacă pe GitHub-ul personal)
 
 ## Starea actuală
 
 <!-- Actualizat: 2026-08-11 -->
 
-Tracing-ul Langfuse e instrumentat pe `qa/langfuse-tracing`. Obiectivul fazei curente, stabilit
-de coordonator, e **validarea Variantei 1**, nu procesul complet: configurare, dockerizare, un
-request către agent, apoi tradus ce se vede în trace în metrici. Automatizarea și integrarea CI
-vin după.
+Obiectivul fazei curente, stabilit de coordonator, e **validarea Variantei 1**, nu procesul
+complet: configurare, dockerizare, un request către agent, apoi tradus ce se vede în trace în
+metrici. Automatizarea și integrarea CI vin după.
+
+**După ziua de 11.08, checklistul „prima zi" (§8) e practic terminat:**
+
+| Pas                                                          | Stare                                                                       |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| 1–3. Langfuse + doc-studio local, rutare LiteLLM cu callback | gata                                                                        |
+| 4. Un request trace-uit end-to-end                           | gata — adaptor peste agentul real (`05f9a79`)                               |
+| 5. Citit ce câmpuri există în trace                          | gata — `finish_reason`, tokeni, `is_truncated` etc. (`b1c56f6`)             |
+| 6. Tabel de mapare câmp → metrică                            | gata — `docs/01-mapare-trace.md`                                            |
+| 7. Primul grader determinist                                 | gata — criteriile 2 și 6 verificabile, completitudinea scrisă prin DeepEval |
+
+Din cele **4 Primary**, Cost & latență e acoperit din trace. Rămân **Task success**,
+**Prompt injection**, **Hallucination rate**.
+
+Datasetul e escaladat în runde: documente realiste → brutale → nivelul următor construit pe ce a
+rezistat. Semnalele care nu se pot verifica **nu mai raportează pass** — nu există verde fals.
 
 ## Următorii pași
 
@@ -63,7 +82,8 @@ vin după.
 
 - Documentul de context `00-context-teo.md` are secțiunile 3–5 scrise pe documentația din
   10.08 dimineața, iar codul s-a schimbat între timp — §9 le corectează. De citit §9 întâi.
-- `qa-ai-agent/docs` nu e versionat.
+- **`qa-ai-agent` nu are remote** — harness-ul, datasetul și maparea de trace există într-un
+  singur exemplar, pe disc. De pus pe un repo privat.
 
 ## Note legate
 
