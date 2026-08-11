@@ -64,6 +64,7 @@ $TRACKED = @(
     @{ Name = 'voice-chat-pizzerie'; Path = 'D:\teodor.fotciuc\voice-chat-pizzerie';       Note = 'projects/Pizza Punto.md' }
     @{ Name = 'ecf-inventory-management'; Path = 'D:\teodor.fotciuc\ecf-inventory-management'; Note = 'projects/Inventory Pro.md' }
     @{ Name = 'ecf_app_web-doc_extract_studio'; Path = 'D:\teodor.fotciuc\ecf_app_web-doc_extract_studio'; Note = 'projects/QA AI Agent.md' }
+    @{ Name = 'qa-ai-agent'; Path = 'D:\teodor.fotciuc\qa-ai-agent'; Note = 'projects/QA AI Agent.md' }
 )
 
 $MARK_START   = '<!-- COMMITS:START - generat de scripts/sync-daily.ps1, nu edita intre markeri -->'
