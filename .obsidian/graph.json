@@ -1,22 +1,65 @@
 {
   "collapse-filter": false,
-  "search": "",
+  "search": "-path:_templates",
   "showTags": false,
   "showAttachments": false,
-  "hideUnresolved": false,
+  "hideUnresolved": true,
   "showOrphans": true,
-  "collapse-color-groups": true,
-  "colorGroups": [],
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "tag:#azi-focus",
+      "color": {
+        "a": 1,
+        "rgb": 16723349
+      }
+    },
+    {
+      "query": "tag:#azi",
+      "color": {
+        "a": 1,
+        "rgb": 3530874
+      }
+    },
+    {
+      "query": "path:daily",
+      "color": {
+        "a": 1,
+        "rgb": 10980346
+      }
+    },
+    {
+      "query": "path:projects",
+      "color": {
+        "a": 1,
+        "rgb": 16098596
+      }
+    },
+    {
+      "query": "path:maps",
+      "color": {
+        "a": 1,
+        "rgb": 2282478
+      }
+    },
+    {
+      "query": "path:notes",
+      "color": {
+        "a": 1,
+        "rgb": 6333946
+      }
+    }
+  ],
   "collapse-display": false,
   "showArrow": false,
-  "textFadeMultiplier": 0,
-  "nodeSizeMultiplier": 1,
+  "textFadeMultiplier": -0.5,
+  "nodeSizeMultiplier": 1.5,
   "lineSizeMultiplier": 1,
   "collapse-forces": false,
-  "centerStrength": 0.518713248970312,
-  "repelStrength": 10,
-  "linkStrength": 1,
-  "linkDistance": 250,
-  "scale": 2.0667569704732895,
+  "centerStrength": 0.4,
+  "repelStrength": 11,
+  "linkStrength": 0.8,
+  "linkDistance": 200,
+  "scale": 0.5,
   "close": false
 }

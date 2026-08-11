@@ -3,16 +3,7 @@
   "newLinkFormat": "shortest",
   "useMarkdownLinks": false,
   "alwaysUpdateLinks": true,
-  "newFileLocation": "folder",
-  "newFileFolderPath": "inbox",
   "showLineNumber": true,
   "readableLineLength": true,
-  "livePreview": true,
-  "defaultViewMode": "source",
-  "promptDelete": false,
-  "trashOption": "system",
-  "showUnsupportedFiles": false,
-  "strictLineBreaks": false,
-  "showFrontmatter": true,
-  "spellcheck": false
+  "strictLineBreaks": false
 }
