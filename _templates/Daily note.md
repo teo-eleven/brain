@@ -16,7 +16,7 @@ type: daily
 
 ## Notes
 
-<!-- Ce am aflat. Orice tehnologie / proiect menționat -> [[link]]. -->
+<!-- Ce am aflat. Orice tehnologie / proiect mentionat il pui in paranteze duble. -->
 
 <!-- Blocul de commit-uri se genereaza automat aici, de scripts/sync-daily.ps1 -->
 
