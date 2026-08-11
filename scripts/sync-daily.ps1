@@ -574,6 +574,9 @@ foreach ($r in $live) {
     $c = @(Get-DayCommits -RepoPath $r.Path -Day $Date)
     if ($c.Count -gt 0 -and $r.Note) { $touchedNotes += $r.Note }
 }
+# doua repo-uri pot trimite la aceeasi nota de proiect (agentul + harness-ul QA),
+# altfel nota apare de doua ori pe canvas si primeste tagul de doua ori
+$touchedNotes = @($touchedNotes | Select-Object -Unique)
 
 if (-not $NoTag) {
     $tag = Set-TodayTag -VaultPath $Vault -FocusRelPath "daily/$Date.md" -TouchedRelPaths $touchedNotes
