@@ -62,6 +62,30 @@ docker compose logs -f backend
 - Endpoint-ul care pornește jobul de extracție validează documentul înainte de a
   pune în coadă, sau eroarea apare abia în worker?
 
+## Cum învăț asta
+
+**Documentație:** https://fastapi.tiangolo.com
+
+**Primul pas practic** (30 de minute):
+
+1. `pip install "fastapi[standard]" uvicorn` într-un venv curat.
+2. În `main.py`: un `class Item(BaseModel)` cu două câmpuri și un
+   `@app.get("/items/{id}", response_model=Item)` care întoarce date fixe.
+3. `uvicorn main:app --reload` și deschide `localhost:8000/docs` — vezi schema
+   generată automat din model și dai request direct din pagină.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce | De ce în ordinea asta |
+|---|---|---|
+| 1 | Path/query params + `response_model` | E scheletul oricărei rute; fără el restul n-are unde se prinde |
+| 2 | `Depends()` și override în teste | Sesiunea DB și autentificarea intră aici, nu în corpul rutei |
+| 3 | `async def` vs `def` + rute care pun în coadă | Abia după ce ai I/O real vezi de ce contează event loop-ul |
+
+**Capcana de începător:** pui `async def` pe o rută care cheamă ceva blocant
+(`requests.get`, driver DB sincron) — nu crapă nimic, dar blochezi event loop-ul
+și tot serverul stă până se termină acel apel, inclusiv pentru ceilalți clienți.
+
 ## Legat
 
 - [[Pydantic v2 - validare la boundary]]

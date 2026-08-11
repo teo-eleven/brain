@@ -76,6 +76,26 @@ docker compose -f stack/langfuse/docker-compose.yml ps   # toate 6 healthy?
   amestecă în aceeași listă?
 - `model_prices.json` cine îl actualizează când Google schimbă tariful?
 
+## Cum învăț asta
+
+**Documentație:** https://langfuse.com/docs
+
+**Primul pas practic** (30 de minute):
+
+1. `git clone https://github.com/langfuse/langfuse && cd langfuse && docker compose up -d`, apoi deschide `http://localhost:3000` și creează proiect + chei.
+2. `uv add langfuse`, exportă `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` / `LANGFUSE_HOST=http://localhost:3000`.
+3. Decorează o funcție cu `@observe(name="test")`, cheam-o o dată, apoi refresh în UI — trace-ul apare cu span-ul tău în arbore.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce | De ce în ordinea asta |
+|---|---|---|
+| 1 | trace / span / generation | Fără ierarhie, UI-ul e o listă fără sens |
+| 2 | `@observe` și contextul curent | Aici se pierd metadatele, deci aici se învață |
+| 3 | Scores și `model_prices.json` | Evaluarea și costul au nevoie de trace-uri corecte întâi |
+
+**Capcana de începător:** chemi `update_current_generation()` după ce `create()` s-a întors — span-ul e deja închis, apelul e no-op tăcut, iar tu cauți în UI câmpuri care n-au fost niciodată scrise.
+
 ## Legat
 
 - [[Tracing LLM - spans si context]]

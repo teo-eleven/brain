@@ -76,6 +76,26 @@ litellm.drop_params = False   # vreau să crape, nu să tacă
 - Ce se întâmplă cu bugetul de tokens raportat de Langfuse dacă proxy-ul face
   fallback pe alt model la mijlocul unui run?
 
+## Cum învăț asta
+
+**Documentație:** https://docs.litellm.ai
+
+**Primul pas practic** (30 de minute):
+
+1. `uv add litellm` și exportă `GEMINI_API_KEY=...` în shell.
+2. Rulează `python -c "import litellm; print(litellm.completion(model='gemini/gemini-2.0-flash', messages=[{'role':'user','content':'ping'}]).choices[0].message.content)"`.
+3. Schimbă doar string-ul de model în `openai/gpt-4o-mini` (cu `OPENAI_API_KEY` setat) și rulează identic — același cod, alt furnizor.
+
+**Ordinea în care merită citit:**
+
+| Etapă | Ce                             | De ce în ordinea asta                                          |
+| ----- | ------------------------------ | -------------------------------------------------------------- |
+| 1     | `completion()` ca bibliotecă   | Vezi traducerea de API pe pielea ta, fără infrastructură       |
+| 2     | Callbacks (`success_callback`) | Observabilitatea vine gratis, dar doar dacă știi unde se agață |
+| 3     | Proxy + `config.yaml`          | Chei, routing, bugete — abia au sens după ce înțelegi apelul   |
+
+**Capcana de începător:** lași `drop_params=True` (implicit pe proxy) și trimiți `reasoning_effort` unui model care nu-l suportă — parametrul e aruncat tăcut, apelul reușește, iar tu depanezi ore un comportament pe care crezi că l-ai configurat.
+
 ## Legat
 
 - [[Langfuse - tracing pentru LLM]]
