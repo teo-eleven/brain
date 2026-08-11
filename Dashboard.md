@@ -51,7 +51,7 @@ Punctele de intrare pe teme. Fiecare adună notele relevante.
 | [[MOC Securitate]]            | [[MOC Testare]]                  |
 | [[MOC Git si Workflow]]       | [[MOC AI si LLM]]                |
 | [[MOC Invatare si Cariera]]   | [[MOC Vault - cum functioneaza]] |
-| [[MOC Sedinte]]               |                                  |
+| [[MOC Sedinte]]               | [[MOC Stack AI - unelte]]        |
 
 ## Proiecte active
 

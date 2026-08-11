@@ -8,6 +8,8 @@ type: moc
 
 Parte din [[MOC Programare]]. Construit _cu_ AI, nu despre teoria AI.
 
+> [[MOC Stack AI - unelte]] — uneltele concrete și cum se leagă între ele (cu diagramă)
+
 ## Regula de aur
 
 - [[Validarea output-ului LLM]] — **niciodată** nu tratezi output-ul ca date structurate de încredere
