@@ -90,5 +90,3 @@ Prompturi: [[Versionarea prompturilor]] și [[Evals inainte de prompt changes]].
 - [ ] Prag de regresie în CI
 
 Legături: [[MOC Stack AI]], [[MOC AI Engineer]], [[MOC Operatii zilnice]]
-
-#azi
