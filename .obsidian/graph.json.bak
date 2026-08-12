@@ -3,8 +3,8 @@
   "search": "-path:_templates",
   "showTags": false,
   "showAttachments": false,
-  "hideUnresolved": true,
-  "showOrphans": true,
+  "hideUnresolved": false,
+  "showOrphans": false,
   "collapse-color-groups": false,
   "colorGroups": [
     {
@@ -12,13 +12,6 @@
       "color": {
         "a": 1,
         "rgb": 16723349
-      }
-    },
-    {
-      "query": "tag:#studiu",
-      "color": {
-        "a": 1,
-        "rgb": 16747546
       }
     },
     {
@@ -63,10 +56,10 @@
   "nodeSizeMultiplier": 1.5,
   "lineSizeMultiplier": 1,
   "collapse-forces": false,
-  "centerStrength": 0,
+  "centerStrength": 0.4,
   "repelStrength": 11,
   "linkStrength": 0.8,
   "linkDistance": 200,
-  "scale": 0.4999999999999996,
+  "scale": 0.49999999999999856,
   "close": true
 }

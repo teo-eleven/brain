@@ -51,29 +51,40 @@ criteriul decisiv, nu costul.
 
 Din cele 4 metrici Primary (vezi [[Metrici pentru agenti AI]]):
 
-| Metrică            | Stare                                            |
-| ------------------ | ------------------------------------------------ |
-| Cost & latență     | acoperit, se citește din trace                   |
-| Task success       | de făcut                                         |
-| Prompt injection   | de făcut — [[Prompt injection - aparare]]        |
-| Hallucination rate | de făcut — cere [[Ground truth pentru evaluare]] |
+| Metrică            | Stare                                                            |
+| ------------------ | ---------------------------------------------------------------- |
+| Cost & latență     | acoperit, se citește din trace                                   |
+| Task success       | în lucru — agregare corectă în `metrics.py` (12.08)              |
+| Prompt injection   | grader existent — [[Prompt injection - aparare]]                 |
+| Hallucination rate | cere golden pe toate cazurile — [[Ground truth pentru evaluare]] |
+
+**Agregarea metricilor a fost greșită până pe 12.08:** raportul număra gradări,
+nu cazuri, fiindcă doi graderi raportează pe aceeași metrică. `metrics.py` dă
+acum o valoare, un prag și un verdict per metrică, cu `n/a` distinct de `ok`
+pentru metricile pe care suita nu le-a exercitat.
 
 ## Probleme cunoscute
 
-**Harness-ul nu are remote git.** Există doar local, pe disc. Un incident pe
-laptop = pierdere totală. De rezolvat, nu de amânat.
+**Fără remote git — decizie, nu scăpare.** Harness-ul există doar local. E ales
+deliberat: repo-ul conține detalii din proiecte de serviciu. Riscul rămâne real
+(un incident pe laptop = pierdere totală) și e **asumat**, nu de rezolvat prin
+publicare. Aceeași regulă ca la vault — vezi [[MOC Vault]].
 
-**Defectul separatorului ambiguu.** 6/6 cantități în format anglo-saxon citite
-de 1000× mai mare: `1.750 to` → 1750. Reproductibil în 4 rulări consecutive,
-deci e defect, nu varianță.
+Riscul e cu atât mai mare cu cât munca stă necomisă zile la rând: pe 12.08 erau
+**38 de fișiere** doar în working tree. Un commit local costă nimic și acoperă
+partea evitabilă a riscului.
 
-De stabilit dacă:
+**Separatorul ambiguu — rezolvat: era promptul.** `1.750 to` → 1750, 6/6
+cantități citite de 1000× mai mare, reproductibil în 4 rulări. Părea limită de
+model exact fiindcă era reproductibil. Experimentul
+(`experiments/separator_ambiguu.py`, commit `d141dfd`) a arătat că se repară din
+prompt.
 
-- se repară din prompt → problemă de configurare;
-- nu se repară → limită de model, și atunci soluția e **validare deterministă
-  după extracție** ([[Validarea output-ului LLM]]).
+Lecția, mai valoroasă decât defectul: **reproductibilitatea dovedește că _există_
+o cauză, nu _care_ e cauza** — [[Experiment inainte de concluzie]].
 
-Metoda de investigație: [[Debugging un prompt]].
+Dacă reapare la alt format, plasa rămâne aceeași: **validare deterministă după
+extracție** ([[Validarea output-ului LLM]]). Metoda: [[Debugging un prompt]].
 
 ## Rutina
 
@@ -83,10 +94,14 @@ Prompturi: [[Versionarea prompturilor]] și [[Evals inainte de prompt changes]].
 
 ## Următorii pași
 
-- [ ] Remote git pentru harness
-- [ ] Decizie pe separatorul ambiguu: prompt sau validator
-- [ ] Task success — definiție și implementare
+- [ ] **Comis lucrul din working tree** — 38 de fișiere, două zile la rând
+- [x] ~~Decizie pe separatorul ambiguu~~ — e promptul (`d141dfd`, 11.08)
+- [x] ~~Remote git pentru harness~~ — rămâne local, deliberat
+- [ ] Task success — agregarea e scrisă, rămâne rulată și verificată pe suită
+- [ ] Publicat dataset-ul în Langfuse (`tools/langfuse_dataset.py`, încă doar `--dry-run`)
 - [ ] Ground truth pentru cele 9 documente reale
 - [ ] Prag de regresie în CI
 
-Legături: [[MOC Stack AI]], [[MOC AI Engineer]], [[MOC Operatii zilnice]]
+Legături: [[MOC Stack AI]], [[MOC AI Engineer]], [[MOC Operatii zilnice]], [[MOC Studiu]]
+
+#azi
