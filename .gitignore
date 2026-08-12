@@ -4,6 +4,9 @@
 .obsidian/cache
 .obsidian/plugins/*/data.json
 
+# Backupurile facute de graph-view.ps1 inainte sa rescrie configul
+.obsidian/*.bak
+
 # Cosul de gunoi al vaultului
 .trash/
 
