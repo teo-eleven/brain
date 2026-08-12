@@ -25,6 +25,7 @@ Nota zilei se creează singură la primul `git commit` din repo-urile urmărite
 | [[MOC AI Engineer]] — rădăcina | [[MOC Stack AI]]        |
 | [[MOC Operatii zilnice]]       | [[MOC Sedinte]]         |
 | [[MOC Vault]]                  | [[Graph view - vederi]] |
+| [[MOC Studiu]] — ce învăț acum |                         |
 
 ## Proiecte
 

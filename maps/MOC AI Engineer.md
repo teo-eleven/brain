@@ -54,7 +54,11 @@ nu teorie despre AI**.
 - [[QA AI Agent]] — infrastructura de evaluare, proiectul principal
 - [[ADM Expert]]
 
-## De învățat #question
+## De învățat
+
+Coada de învățare, cu ordinea și starea fiecărei note: [[MOC Studiu]].
+
+### Întrebări deschise #question
 
 - [ ] Embeddings: ce model pentru română
 - [ ] Chunking strategies — cel mai subestimat detaliu din RAG
