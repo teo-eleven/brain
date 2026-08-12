@@ -56,14 +56,26 @@ Setările lui stau în `workspace.json`, care e în `.gitignore` — **nu se ver
 
 ## Culorile configurate
 
-| Query            | Culoare                  |
-| ---------------- | ------------------------ |
-| `tag:#azi-focus` | magenta — ziua curentă   |
-| `tag:#azi`       | verde — atins azi        |
-| `path:daily`     | violet                   |
-| `path:projects`  | chihlimbar               |
-| `path:maps`      | cyan — hub-urile         |
-| `path:notes`     | albastru — masa grafului |
+Ordinea contează: **prima potrivire câștigă**. Lista e în `scripts/graph-view.ps1`, în
+`$COLOR_GROUPS` — acolo se modifică, nu de mână în Obsidian.
+
+| Query            | Culoare                     |
+| ---------------- | --------------------------- |
+| `tag:#azi-focus` | magenta — ziua curentă      |
+| `tag:#studiu`    | portocaliu — ce înveți acum |
+| `tag:#azi`       | verde — atins azi           |
+| `path:daily`     | violet                      |
+| `path:projects`  | chihlimbar                  |
+| `path:maps`      | cyan — hub-urile            |
+| `path:notes`     | albastru — masa grafului    |
+
+## `#studiu` — ce înveți acum
+
+Tag manual, pus de mână în frontmatter (`tags: [nota, studiu]`) sau în corpul notei. Stă
+**înaintea** lui `#azi`, deci o notă de studiu rămâne portocalie chiar dacă ai atins-o azi.
+
+E un marcaj **temporar**: îl scoți când ai terminat de învățat subiectul. Dacă rămâne pe 20 de
+note, nu mai iese nimic în evidență — asta e tot rostul lui.
 
 ## Ce nu se poate
 
