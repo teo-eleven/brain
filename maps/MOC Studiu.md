@@ -65,6 +65,41 @@ Astea au deja context real din trei zile de lucru, deci sunt cel mai ieftin de c
 - [[Claude Code - configurare]] · [[Lucrul cu agenti in terminal]] · [[Debugging un prompt]]
 - [[Cum citesc un trace]] — în ce ordine te uiți
 
+---
+
+## Ce am învățat
+
+Lecții transferabile, cu data. Ce se repetă aici merită promovat într-o notă permanentă.
+
+### 2026-08-12
+
+Din munca pe [[QA AI Agent]] — vezi [[2026-08-12]]:
+
+- **Un raport poate agrega pe altă unitate decât definește specul, și tot pare corect.**
+  Numărătoarea mergea pe gradări, nu pe cazuri: `task_success` avea 18 cazuri și raporta 36,
+  fiindcă doi graderi scriu pe aceeași metrică. Numărul nu era absurd, deci nu sărea în ochi.
+  **Verifică unitatea de agregare, nu doar valoarea.**
+- **„Nu s-a măsurat" nu e „a trecut".** O metrică pe care suita n-a exercitat-o primește `n/a`,
+  niciodată `ok`. A patra zi consecutivă pe aceeași temă — [[Esecul tacut in sisteme AI]].
+- **Configurația duplicată diverge în tăcere.** Citirea și scrierea din Langfuse aveau fiecare
+  propria copie a host-ului și a cheilor. Nimic nu crapă când schimbi un implicit într-un loc și
+  îl ratezi în celălalt — doar se comportă diferit. Un singur loc pentru o valoare.
+- **Publicarea repetată trebuie să fie idempotentă.** Id-ul item-ului = `case_id`, deci a doua
+  rulare suprascrie. Fără asta rămân două versiuni ale aceluiași caz și nu mai știi care e
+  adevărul curent.
+- **Un caz care nu-și poartă contextul nu se poate reproduce.** Promptul se scrie întreg în
+  fiecare item, chiar dacă 14 din 18 îl au identic — aici s-a dovedit că o singură frază schimbă
+  rezultatul ([[Experiment inainte de concluzie]]).
+
+Din vault — vezi [[Graph view - vederi]]:
+
+- **Linkurile generate de Dataview nu produc muchii în graf.** Un hub construit din query-uri
+  arată gol în graph view. Hub-urile se fac pe legături `[[...]]` scrise.
+- **Obsidian nu interpretează tag-uri în cod inline.** Un `` `#studiu` `` în text explicativ nu
+  colorează nota — util când documentezi chiar tag-ul pe care îl folosești.
+- **Configul de graf se pierde dacă Obsidian e pornit.** Aplicația își rescrie
+  `.obsidian/graph.json` din memorie la ieșire. `Ctrl+Q`, nu X.
+
 ## Legat
 
 - [[MOC AI Engineer]] — rădăcina · [[MOC Stack AI]] · [[MOC Vault]] · [[Dashboard]]
