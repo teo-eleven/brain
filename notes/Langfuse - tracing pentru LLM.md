@@ -47,6 +47,42 @@ Drop-in-ul `langfuse.openai` deschide un span la `create()` și îl **închide c
 Fix: un span părinte explicit, `llm_call`, deschis înainte de `create()` și
 închis după ce am terminat de atașat tot ce vreau.
 
+### Două mecanisme, nu unul (12.08)
+
+Platforma face două lucruri complet diferite, iar confuzia dintre ele ascunde
+exact ce nu e configurat:
+
+1. **Ce publici tu în ea.** Harness-ul rulează local și scrie prin API: trace-uri
+   (`qa.suite-run`), scoruri (`qa.suite.*`), items de dataset, cazuri în coada de
+   revizuire. Aici Langfuse e **arhivă și vitrină** — se vede lângă trace-urile
+   rulărilor, dar adevărul rămâne în repo.
+2. **Ce rulează ea singură.** Dataset runs (experimente peste items) și evaluation
+   rules (judecători LLM porniți pe trace-uri sau observații, cu eșantionare).
+   Astea se execută **în platformă**, pe banii ei, fără să treacă prin codul tău.
+
+Al doilea mecanism poate fi **complet neconfigurat fără să se vadă în primul**:
+pe 12.08 dataset-ul avea 18 items publicate, dar 0 rulări și 0 reguli. Un tablou
+care arăta doar scorurile publicate de harness lăsa impresia că „evaluarea merge",
+când partea automată a platformei nu pornise niciodată. Vezi
+[[Esecul tacut in sisteme AI]], tiparul 4.
+
+**Dataset publicat ≠ dataset rulat.** Items-urile cu golden sunt o referință; fără
+un experiment peste ele, nimeni nu a comparat nimic.
+
+### `source` pe scoruri — cine a scris ce
+
+Fiecare scor poartă sursa, iar API-ul filtrează după ea:
+
+| `source`     | Cine scrie                      | Pe 12.08 |
+| ------------ | ------------------------------- | -------- |
+| `API`        | harness-ul propriu, prin cod    | **881**  |
+| `EVAL`       | un evaluator rulat de platformă | **0**    |
+| `ANNOTATION` | un om, din coada de revizuire   | **0**    |
+
+Deci scorurile **nu** se amestecă: `?source=EVAL` separă judecata automată de a
+omului și de a harness-ului, într-o singură cerere. E și cel mai ieftin test de
+„rulează cineva ceva?" — trei cereri cu `limit=1`, se citește doar totalul.
+
 ## Comenzi
 
 ```python
@@ -72,9 +108,14 @@ docker compose -f stack/langfuse/docker-compose.yml ps   # toate 6 healthy?
   unitate în UI?
 - Ce se pierde dacă Langfuse pică în timpul unui run — batch-ul se reia sau
   trace-ul e pierdut definitiv?
-- Scorurile scrise de DeepEval sunt separate de cele scrise manual de om, sau se
-  amestecă în aceeași listă?
+- ~~Scorurile scrise de DeepEval sunt separate de cele scrise manual de om?~~ —
+  **da, prin `source`** (`API` / `EVAL` / `ANNOTATION`), verificat pe 12.08.
 - `model_prices.json` cine îl actualizează când Google schimbă tariful?
+- Merită pornit mecanismul al doilea (dataset runs în platformă) sau harness-ul
+  local rămâne singurul care rulează, cu Langfuse doar ca vitrină? Dublarea ar da
+  două seturi de rezultate pentru aceleași items.
+- Rutele `unstable/*` (evaluators, evaluation-rules) — cât de sigur e să depinzi
+  de ele într-un tablou, dacă se pot schimba între versiuni?
 
 ## Cum învăț asta
 

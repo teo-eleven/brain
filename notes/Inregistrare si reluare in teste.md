@@ -42,6 +42,29 @@ diferă. E [[Esecul tacut in sisteme AI]] în altă formă: verde pe o realitate
 Antidot: rulări **live** periodice, separate de cele pe înregistrări, care reîmprospătează
 cassette-urile și semnalează diferențele. Înregistrarea e pentru iterat, nu pentru verdictul final.
 
+## Aceeași idee, alt strat: interfața (12.08)
+
+„Separă ce testezi de ce apelezi" nu e despre LLM-uri — e despre orice dependință externă. Aplicat
+la un panou de tablou care citește din trei servicii: panoul rulat **în Node, cu un DOM minimal
+inventat** (`getElementById` întoarce un obiect cu `innerHTML`) și cu `fetch` înlocuit. Fără
+browser, fără server pornit.
+
+Două moduri, amândouă necesare:
+
+- **`fetch` real către proxy-ul local** — verifică pe datele adevărate: se randează toate cele 18
+  rânduri, zero `undefined` scăpat în HTML.
+- **`fetch` cu răspunsuri fabricate** — patru scenarii pe care realitatea _nu ți le dă la cerere_:
+  toate sursele picate cu 500, dataset lipsă, rută respinsă de proxy cu 403, și cazul cu rulări +
+  reguli existente (instanța are 0, deci ramura aia nu s-ar executa niciodată local).
+
+Al doilea mod e argumentul întreg. Ramurile de eșec sunt exact cele care nu se exersează în
+practică, fiindcă apar când ceva e deja stricat — și tocmai ele decid dacă tabloul spune „n-am
+putut citi" sau afișează un tabel gol care pare în regulă ([[Esecul tacut in sisteme AI]]).
+
+Limita, spusă direct: pe scenariul fabricat verifici **codul tău**, nu forma reală a răspunsului
+serverului. Pentru regulile de evaluare, forma exactă a rămas neverificată — instanța are 0 —
+deci câmpurile se citesc defensiv și asta e scris în cod, nu presupus rezolvat.
+
 ## De răspuns
 
 - Cât de des trebuie reîmprospătate înregistrările ca să nu testez un model care nu mai există?
@@ -49,6 +72,8 @@ cassette-urile și semnalează diferențele. Înregistrarea e pentru iterat, nu 
 - Cum marchez în raport că un rezultat vine din reluare, nu din rulare live?
 - Ce teste NU au voie să ruleze pe înregistrări? (probabil cele care validează chiar integrarea)
 - Înregistrările intră în git? Devin mari repede și conțin output de model.
+- Scenariile de eșec fabricate ar trebui să devină teste rulate în CI, sau rămân scripturi de
+  verificat o dată? Un script care nu mai rulează nu apără nimic.
 
 ## Legat
 
