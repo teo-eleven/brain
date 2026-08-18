@@ -35,6 +35,8 @@ FROM "projects"
 SORT file.mday DESC
 ```
 
+În afara firmei: [[Proiecte personale]] — coral în graf, `#personal`.
+
 ## De completat — schelete
 
 Note cu context și întrebări, dar fără ideea scrisă de mine:

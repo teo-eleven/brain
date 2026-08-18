@@ -40,6 +40,7 @@ $VIEW_DESCRIERI = @{
 $COLOR_GROUPS = @(
     @{ query = 'tag:#azi-focus'; rgb = 16723349 },
     @{ query = 'tag:#studiu';    rgb = 16747546 },
+    @{ query = 'tag:#personal';  rgb = 16281969 },
     @{ query = 'tag:#azi';       rgb = 3530874  },
     @{ query = 'path:daily';     rgb = 10980346 },
     @{ query = 'path:projects';  rgb = 16098596 },

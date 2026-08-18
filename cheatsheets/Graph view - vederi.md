@@ -63,11 +63,21 @@ Ordinea contează: **prima potrivire câștigă**. Lista e în `scripts/graph-vi
 | ---------------- | --------------------------- |
 | `tag:#azi-focus` | magenta — ziua curentă      |
 | `tag:#studiu`    | portocaliu — ce înveți acum |
+| `tag:#personal`  | coral — proiecte personale  |
 | `tag:#azi`       | verde — atins azi           |
 | `path:daily`     | violet                      |
 | `path:projects`  | chihlimbar                  |
 | `path:maps`      | cyan — hub-urile            |
 | `path:notes`     | albastru — masa grafului    |
+
+## `#personal` — ce se lucrează în afara firmei
+
+Tag pus în frontmatter (`tags: [project, personal]`) pe cele din [[Proiecte personale]]. Stă
+**înaintea** lui `tag:#azi`, deci un proiect personal rămâne coral chiar dacă e atins azi — separarea
+serviciu / personal e o proprietate permanentă, nu una a zilei.
+
+Spre deosebire de `#studiu`, nu e temporar: nu se scoate când proiectul se termină, se schimbă
+`status` în frontmatter.
 
 ## `#studiu` — ce înveți acum
 

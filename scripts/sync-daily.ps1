@@ -33,7 +33,8 @@
 param(
     [string]   $Vault,
     [string]   $Date,
-    [switch]   $NoTag
+    [switch]   $NoTag,
+    [switch]   $Backfill
 )
 
 # $PSScriptRoot e gol in blocul param() cand scriptul e pornit cu `powershell -File`
@@ -73,6 +74,32 @@ $MARK_END     = '<!-- COMMITS:END -->'
 $TAG_TODAY    = '#azi'        # notele secundare atinse azi (verde in graf)
 $TAG_FOCUS    = '#azi-focus'  # nota zilei, nodul principal (magenta in graf)
 $MAX_FILES    = 14            # cate fisiere listez per commit inainte sa rezum
+
+# Sectiunea "Atins in ziua asta": legaturi [[...]] catre notele din vault
+# atinse in ziua respectiva, ca ziua sa devina hub real in graf.
+# Dataview NU produce muchii in graph view, deci linkurile se scriu efectiv.
+$MARK_TOUCHED_START = '<!-- ATINS:START - generat de scripts/sync-daily.ps1, nu edita intre markeri -->'
+$MARK_TOUCHED_END   = '<!-- ATINS:END -->'
+
+# Ziua resetului: pe 11.08 vaultul a fost golit si reconstruit de la zero.
+# Commiturile de dinainte de rebuild ating ~170 de fisiere, majoritatea sterse
+# intre timp - zgomot de rebuild, nu munca. Numar doar ce vine dupa rebuild.
+$RESET_DAY    = '2026-08-11'
+$RESET_COMMIT = '649d09f'
+
+# Ordinea grupurilor in sectiune. Ce nu e aici intra la "Vault" (radacina).
+$TOUCHED_GROUPS = [ordered]@{
+    'projects'    = 'Proiecte'
+    'notes'       = 'Note'
+    'maps'        = 'Hărți'
+    'daily'       = 'Zile'
+    'cheatsheets' = 'Cheatsheets'
+    'decisions'   = 'Decizii'
+    'meetings'    = 'Ședințe'
+    'people'      = 'Oameni'
+    'snippets'    = 'Snippets'
+    'weekly'      = 'Săptămâni'
+}
 
 # Canvas-ul zilei: pozitii fixe, ce nu se poate obtine in graph view
 $CANVAS_FILE  = 'Azi.canvas'
@@ -273,6 +300,135 @@ $Section
         $new = $existing.Substring(0, $iAnchor) + "`n" + $Section + "`n" + $existing.Substring($iAnchor)
     } else {
         $new = $existing.TrimEnd() + "`n`n" + $Section + "`n"
+    }
+    Write-Utf8 -Path $Path -Content $new
+    return 'inserat'
+}
+
+# ---------------------------------------------------------------------------
+# Notele din vault atinse intr-o zi
+#
+# Sursa e istoricul git AL VAULTULUI (nu al repo-urilor urmarite - alea intra in
+# blocul COMMITS). Pentru ziua curenta adaug si ce e necomis inca, fiindca
+# scriptul isi face commit-ul abia la final: fara asta, ziua de azi ar iesi goala.
+# ---------------------------------------------------------------------------
+function Get-DayTouchedNotes {
+    param([string]$VaultPath, [string]$Day)
+
+    $found = @{}
+
+    # -c core.quotepath=false: altfel git escapeaza caracterele non-ASCII din
+    # cai si ies "M\303\242ine.md" in loc de numele real.
+    $gitArgs = @('-c', 'core.quotepath=false', '-C', $VaultPath, 'log')
+    if ($Day -eq $RESET_DAY) { $gitArgs += "$RESET_COMMIT..HEAD" }
+    $gitArgs += @("--since=$Day 00:00", "--until=$Day 23:59",
+                  '--name-only', '--pretty=format:', '--', '*.md')
+
+    $raw = & git @gitArgs 2>$null
+    foreach ($line in $raw) {
+        $p = "$line".Trim()
+        if ($p) { $found[$p] = $true }
+    }
+
+    # ziua curenta: si ce n-a apucat sa intre in commit
+    if ($Day -eq (Get-Date).ToString('yyyy-MM-dd')) {
+        $st = & git -c core.quotepath=false -C $VaultPath status --porcelain -- '*.md' 2>$null
+        foreach ($line in $st) {
+            $s = "$line"
+            if ($s.Length -le 3) { continue }
+            $p = $s.Substring(3).Trim()
+            # redenumire: "R  vechi -> nou" - ma intereseaza destinatia
+            if ($p -match ' -> ') { $p = ($p -split ' -> ')[-1].Trim() }
+            $p = $p.Trim('"')
+            if ($p) { $found[$p] = $true }
+        }
+    }
+
+    $out = @()
+    foreach ($p in $found.Keys) {
+        if ($p -like '_templates/*') { continue }        # sabloane, nu munca
+        if ($p -eq "daily/$Day.md")  { continue }        # nota nu se leaga de ea insasi
+        # fisiere sterse intre timp: raman in istoric, dar n-au nod in graf
+        if (-not (Test-Path -LiteralPath (Join-Path $VaultPath ($p -replace '/', '\')))) { continue }
+        $out += $p
+    }
+
+    return @($out | Sort-Object)
+}
+
+# ---------------------------------------------------------------------------
+# Sectiunea cu legaturile zilei
+# ---------------------------------------------------------------------------
+function Build-TouchedSection {
+    param([string[]]$RelPaths)
+
+    # grupez pe folderul de nivel 1; radacina (Dashboard, 00 START HERE) -> "Vault"
+    $buckets = [ordered]@{}
+    foreach ($label in $TOUCHED_GROUPS.Values) { $buckets[$label] = @() }
+    $buckets['Vault'] = @()
+
+    foreach ($p in $RelPaths) {
+        $parts = $p -split '/'
+        $label = if ($parts.Count -gt 1 -and $TOUCHED_GROUPS.Contains($parts[0])) {
+            $TOUCHED_GROUPS[$parts[0]]
+        } else { 'Vault' }
+        # link scurt: vaultul e pe newLinkFormat=shortest si basename-urile sunt unice
+        $buckets[$label] += [System.IO.Path]::GetFileNameWithoutExtension($p)
+    }
+
+    $sb = [System.Text.StringBuilder]::new()
+    [void]$sb.AppendLine($MARK_TOUCHED_START)
+    [void]$sb.AppendLine('## Atins în ziua asta')
+    [void]$sb.AppendLine()
+    [void]$sb.AppendLine("> **$($RelPaths.Count)** note atinse în vault")
+    [void]$sb.AppendLine()
+
+    foreach ($label in $buckets.Keys) {
+        $items = @($buckets[$label])
+        if ($items.Count -eq 0) { continue }
+        [void]$sb.AppendLine("**$label** · $($items.Count)")
+        [void]$sb.AppendLine()
+        foreach ($n in $items) { [void]$sb.AppendLine("- [[$n]]") }
+        [void]$sb.AppendLine()
+    }
+
+    [void]$sb.Append($MARK_TOUCHED_END)
+    return $sb.ToString()
+}
+
+# ---------------------------------------------------------------------------
+# Scrie sectiunea in daily note, pastrand ce ai scris tu
+# ---------------------------------------------------------------------------
+function Update-TouchedSection {
+    param([string]$Path, [string]$Section)
+
+    $existing = Read-Utf8 $Path
+    if ($null -eq $existing) { return 'lipsa' }
+
+    $iStart = $existing.IndexOf($MARK_TOUCHED_START)
+    $iEnd   = $existing.IndexOf($MARK_TOUCHED_END)
+
+    if ($iStart -ge 0 -and $iEnd -gt $iStart) {
+        $before = $existing.Substring(0, $iStart)
+        $after  = $existing.Substring($iEnd + $MARK_TOUCHED_END.Length)
+        Write-Utf8 -Path $Path -Content ($before + $Section + $after)
+        return 'actualizat'
+    }
+
+    # fara markeri inca: dupa blocul COMMITS daca exista, altfel inainte de
+    # "## Deschis", altfel la final
+    $iCommitsEnd = $existing.IndexOf($MARK_END)
+    if ($iCommitsEnd -ge 0) {
+        $cut = $iCommitsEnd + $MARK_END.Length
+        $new = $existing.Substring(0, $cut) + "`n`n" + $Section + $existing.Substring($cut)
+    } else {
+        $anchor  = "`n## Deschis"
+        $iAnchor = $existing.IndexOf($anchor)
+        if ($iAnchor -ge 0) {
+            $new = $existing.Substring(0, $iAnchor) + "`n" + $Section + "`n" + $existing.Substring($iAnchor)
+        } else {
+            $new = $existing.TrimEnd() + "`n`n" + $Section + "`n"
+        }
     }
     Write-Utf8 -Path $Path -Content $new
     return 'inserat'
@@ -554,6 +710,39 @@ Write-Host "Vault : $Vault"
 Write-Host "Ziua  : $Date"
 Write-Host ""
 
+# Reconstituie sectiunea "Atins in ziua asta" pentru toate zilele existente.
+# Nu atinge commit-urile, tagurile sau canvas-ul si NU face commit in vault -
+# te uiti la diff si decizi tu.
+if ($Backfill) {
+    $dailyDir = Join-Path $Vault 'daily'
+    if (-not (Test-Path $dailyDir)) { throw "Nu exista folderul daily in $Vault" }
+
+    Write-Host "Backfill: sectiunea de legaturi, pe toate zilele" -ForegroundColor Cyan
+    Write-Host ""
+
+    $nScris = 0; $nSarit = 0
+    foreach ($f in (Get-ChildItem $dailyDir -Filter '*.md' -File | Sort-Object Name)) {
+        if ($f.BaseName -notmatch '^\d{4}-\d{2}-\d{2}$') { continue }
+        $d = $f.BaseName
+
+        $touched = @(Get-DayTouchedNotes -VaultPath $Vault -Day $d)
+        if ($touched.Count -eq 0) {
+            Write-Host "  daily/$d.md  -> sarit (nicio atingere in vault)" -ForegroundColor DarkGray
+            $nSarit++
+            continue
+        }
+
+        $sec = Build-TouchedSection -RelPaths $touched
+        $act = Update-TouchedSection -Path $f.FullName -Section $sec
+        Write-Host "  daily/$d.md  -> $act ($($touched.Count) note)"
+        $nScris++
+    }
+
+    Write-Host ""
+    Write-Host "$nScris zile scrise, $nSarit sarite. Nimic comis - verifica cu 'git diff'." -ForegroundColor Green
+    exit 0
+}
+
 # repo-uri care exista chiar pe disc
 $live = @()
 foreach ($r in $TRACKED) {
@@ -566,6 +755,16 @@ $section = Build-CommitSection -Repos $live -Day $Date
 $dailyPath = Join-Path $Vault "daily\$Date.md"
 $action    = Update-DailyNote -Path $dailyPath -Day $Date -Section $section.Text
 Write-Host "  daily/$Date.md  -> $action ($($section.Commits) commit-uri)"
+
+# legaturile catre notele din vault atinse azi - ziua devine hub in graf
+$touchedToday = @(Get-DayTouchedNotes -VaultPath $Vault -Day $Date)
+if ($touchedToday.Count -gt 0) {
+    $touchedSection = Build-TouchedSection -RelPaths $touchedToday
+    $tAction = Update-TouchedSection -Path $dailyPath -Section $touchedSection
+    Write-Host "  legaturi zi    -> $tAction ($($touchedToday.Count) note atinse in vault)"
+} else {
+    Write-Host "  legaturi zi    -> nimic atins in vault azi" -ForegroundColor DarkGray
+}
 
 # notele de proiect in care s-a lucrat azi
 $touchedNotes = @()
