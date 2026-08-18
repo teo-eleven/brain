@@ -56,14 +56,38 @@ Face backup la `graph.json.bak` înainte de fiecare scriere.
 ## `sync-daily.ps1` — nota zilei
 
 ```powershell
-.\scripts\sync-daily.ps1 -NoPush           # ziua curenta
+.\scripts\sync-daily.ps1                   # ziua curenta
 .\scripts\sync-daily.ps1 -Date 2026-08-10  # o zi anume, retroactiv
-.\scripts\sync-daily.ps1 -NoTag -NoPush    # fara sa umble la tagurile #azi
+.\scripts\sync-daily.ps1 -NoTag            # fara sa umble la tagurile #azi
+.\scripts\sync-daily.ps1 -Backfill         # doar legaturile, pe toate zilele
 ```
 
 Scrie commit-urile zilei în `daily/AAAA-LL-ZZ.md`, între markerii `COMMITS:START/END` — restul
 notei rămâne al tău. Mută `#azi-focus` pe ziua curentă și `#azi` pe proiectele atinse.
 Regenerează `Azi.canvas`.
+
+### Blocul `ATINS:START/END` — ziua ca hub
+
+Al doilea bloc generat, sub cel de commit-uri: **legături `[[...]]` către notele din vault atinse
+în ziua aia**, grupate pe folder. Sursa e istoricul git *al vaultului* — nu al repo-urilor
+urmărite, alea intră în blocul de commit-uri.
+
+De ce linkuri scrise și nu o interogare Dataview: **Dataview nu produce muchii în graph view**.
+Un hub construit din query arată gol în graf. Vezi [[Graph view - vederi]].
+
+Efectul: zilele devin coloana vertebrală a grafului, nu noduri care atârnă. Tagurile `#azi` rămân
+ce erau — marcaj **efemer**, doar pentru ziua curentă; `Set-TodayTag` le șterge din tot vaultul la
+fiecare rulare, deci ele nu pot ține minte trecutul. Blocul ăsta îl ține.
+
+Două particularități, ambele deliberate:
+
+- **Zilele fără nicio atingere în vault se sar** — nu primesc bloc gol. `2026-08-13` e așa: munca
+  ei a fost în `qa-ai-agent`, deci apare în blocul de commit-uri, nu aici.
+- **`2026-08-11` se numără doar de după commit-ul de rebuild** (`$RESET_COMMIT`). Înainte de el e
+  resetul vaultului: ~170 de fișiere atinse, majoritatea șterse între timp. Zgomot, nu muncă.
+
+`-Backfill` reface blocul pe toate zilele existente și **nu face commit** — te uiți la `git diff`
+și decizi tu. E idempotent: a doua rulare nu schimbă nimic.
 
 Rulează **automat la fiecare `git commit`**, dintr-un hook `PostToolUse` din
 `~/.claude/settings.json`. Repo-urile urmărite sunt în `$TRACKED`, la începutul scriptului —

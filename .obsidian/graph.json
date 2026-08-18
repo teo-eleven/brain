@@ -15,6 +15,20 @@
       }
     },
     {
+      "query": "tag:#studiu",
+      "color": {
+        "a": 1,
+        "rgb": 16747546
+      }
+    },
+    {
+      "query": "tag:#personal",
+      "color": {
+        "a": 1,
+        "rgb": 16281969
+      }
+    },
+    {
       "query": "tag:#azi",
       "color": {
         "a": 1,
@@ -56,10 +70,10 @@
   "nodeSizeMultiplier": 1.5,
   "lineSizeMultiplier": 1,
   "collapse-forces": false,
-  "centerStrength": 0.4,
+  "centerStrength": 0,
   "repelStrength": 11,
   "linkStrength": 0.8,
   "linkDistance": 200,
-  "scale": 0.4999999999999989,
-  "close": false
+  "scale": 0.25438094278962725,
+  "close": true
 }

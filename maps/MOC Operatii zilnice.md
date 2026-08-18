@@ -33,6 +33,11 @@ graph LR
 - [[Debugging un prompt]] — un lucru schimbat o dată, pe același set
 - [[Versionarea prompturilor]] — promptul e cod: git, versiune, teste
 
+## Metodă
+
+- [[Experiment inainte de concluzie]] — reproductibilitatea arată că _există_ o cauză, nu _care_ e
+- [[Inregistrare si reluare in teste]] — iterezi pe graderi gratis, fără rețea
+
 ## Cu agenți
 
 - [[Lucrul cu agenti in terminal]] — nodul care leagă codul de agenți

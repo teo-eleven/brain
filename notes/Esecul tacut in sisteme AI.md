@@ -19,6 +19,7 @@ configurabilă), pe stack-ul LiteLLM → Gemini 3 Flash, cu Langfuse pentru trac
 | 1   | 10.08, commit `5760a64` | `max_tokens=16384` hardcodat; Gemini 3 Flash consumă thinking tokens din același buget | JSON tăiat la mijloc, `finish_reason=length`, parse fail înghițit de `or []` și un `except` blanket → succes raportat cu rezultat gol                                                                       |
 | 2   | 11.08, commit `b1c56f6` | drop-in-ul `langfuse.openai` închide span-ul când `create()` se întoarce               | orice `update_current_*` de după e NO-OP tăcut: codul pare că scrie în trace, nu scrie nimic. Tokenii și `finish_reason` existau doar în logurile Celery → 2 din 4 metrici PRIMARY nemăsurabile programatic |
 | 3   | 11.08                   | harness-ul de evaluare                                                                 | raporta VERDE pe două semnale care nu se pot verifica deloc                                                                                                                                                 |
+| 4   | 12.08, fără commit      | platforma de evaluare (Langfuse) + stratul de afișare                                  | **absența execuției nu producea niciun semnal**: dataset publicat (18 items), dar 0 rulări de dataset, 0 reguli de evaluare, 0 scoruri de la un evaluator automat. Configurarea exista, execuția nu         |
 
 Fixuri, pe rând: `max_tokens` scos (default = maximul modelului, override prin
 `LLM_MAX_OUTPUT_TOKENS`), `LLM_REASONING_EFFORT=low`, `finish_reason` expus pe
@@ -45,11 +46,38 @@ Trei tipare de recunoscut:
 - **Instrumentare care nu instrumentează**: apelul se face, dar nu ajunge nicăieri.
 - **Verde pe semnal inexistent**: metrică raportată pass fără să existe date
   care s-o susțină. Aici „nu se aplică" e răspunsul corect, nu „pass".
+- **Configurare confundată cu execuție** (adăugat 12.08): dataset publicat,
+  evaluator definit, coadă creată — și zero rulări. Nimic nu semnalizează
+  absența, fiindcă „nu s-a întâmplat nimic" nu produce niciun artefact. Primele
+  trei tipare mint despre un rezultat; ăsta lasă impresia de acoperire acolo
+  unde nu s-a măsurat nimic.
+
+## Cum a fost găsită a patra (12.08)
+
+Nu de un test, ci **punând inventarul pe ecran**. Un test verifică ce te-ai
+gândit să întrebi; a patra formă exista tocmai fiindcă nimeni nu formulase
+întrebarea „dar rulează ceva din ce am configurat?". Panoul care listează
+dataset, rulări și evaluatori a răspuns la ea în momentul în care a existat.
+
+De aici, regula de afișare aplicată în tablou: **un „0" nu se arată verde.**
+Fiecare cifră are trei stări distincte — valoare citită, **zero cu motivul
+scris lângă**, și „?" separat pentru „n-am putut citi". Ultimele două confundate
+sunt exact tiparul din tabel, mutat în interfață: un panou gol și liniștit spune
+„totul e în regulă" despre ceva ce n-a fost măsurat.
+
+Corolar din aceeași zi: judecătorul automat afișat **cu rezultatul validării
+lui lângă**, nu singur. Vezi [[LLM as judge]] — validat, ratează jumătate din
+defectele reale, deci un scor de 1.000 arătat fără context ar fi fost a cincea
+apariție.
 
 ## De răspuns
 
-- Cum detectez a patra apariție înainte să o găsesc din întâmplare? Există un
-  test care verifică faptul că metricile chiar au sursă de date?
+- ~~Cum detectez a patra apariție înainte să o găsesc din întâmplare?~~ —
+  răspuns parțial pe 12.08: **prin inventar vizibil, nu prin test.** Rămâne
+  întrebarea mai grea: ce inventar _nu_ am pus încă pe ecran?
+- Există un test care verifică faptul că metricile chiar au sursă de date?
+- Se poate verifica mecanic „configurat, dar niciodată rulat"? Un check care
+  compară ce e definit în platformă cu ce are execuții în ultimele N zile.
 - Ce ar trebui să însemne „nu se aplică" în raportul final — pass, fail, sau o
   a treia stare care blochează publicarea rezultatului?
 - Câte dintre `except`-urile din codul agentului sunt acolo pentru robustețe și
