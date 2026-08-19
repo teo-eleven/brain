@@ -816,4 +816,4 @@ $msg = "notes: sync $Date - $($section.Commits) commit-uri din repo-urile urmari
 git -C $Vault commit -q -m $msg
 Write-Host ""
 Write-Host "  commit vault: $(git -C $Vault rev-parse --short HEAD)"
-Write-Host "  vault local-only, fara push" -ForegroundColor DarkGray
+Write-Host "  commit local; push-ul spre tewtzu-ctrl/brain (privat) se face manual" -ForegroundColor DarkGray
