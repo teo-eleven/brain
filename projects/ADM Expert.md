@@ -42,14 +42,25 @@ apps/web/src/modules/budgets              # UI de buget
 tests/                                    # pytest
 ```
 
-**Branch de lucru:** `feat/stergere-domenii-coprag-manager-super` — șase commit-uri, neintegrat
-în `main`.
+**Branch de lucru:** `feat/export-doar-firma-proprie` — 18 commit-uri peste `dev`, ultimul pe
+18.08 la 15:40. Mai există local `feat/grup-un-singur-set-de-date` (17) și
+`feat/stergere-domenii-coprag-manager-super` (6). **Toate sunt pushuite pe origin**, deci nimic
+nu trăiește doar pe laptop.
 
-**Capcană, plătită deja:** pe 17.08 la 11:47 repo-ul a fost mutat de pe
-`C:\Users\teodor.fotciuc\ecf-adm-expert` pe `D:`. Copia veche de pe `C:` a rămas pe disc, e un repo
-git valid, dar mort — ultimul commit în ea e din 10.08. `$TRACKED` din `scripts/sync-daily.ps1`
-încă o urmărește pe ea, deci **munca pe proiectul ăsta nu ajunge singură în notele de zi**. Vezi
-[[2026-08-17]].
+**Capcana clonei duble — rezolvată pe 19.08.** Pe 17.08 repo-ul a fost mutat de pe
+`C:\Users\teodor.fotciuc\ecf-adm-expert` pe `D:`, iar copia veche a rămas pe disc: 347 MB, repo
+git valid, dar înghețat pe 10.08. `$TRACKED` din `scripts/sync-daily.ps1` o urmărea pe **ea**.
+
+Ce face defectul ăsta special: o cale **inexistentă** ar fi dat avertismentul scriptului
+(`! sar peste ... nu e repo git`). O **clonă veche** e un repo perfect valid care raportează
+sincer „zero commit-uri azi". Scriptul nu greșea — citea altceva decât credeam. De-asta nicio
+zi de lucru pe ADM Expert n-a intrat în vault între 10.08 și 19.08.
+[[Esecul tacut in sisteme AI]]: tăcerea citită ca „e în regulă".
+
+Reparat: `$TRACKED` arată acum spre `D:`. Clona veche avea **7 commit-uri din 04.08 care nu
+existau nicăieri altundeva** (verificat pe `patch-id`, nu doar pe SHA): conturi + administrare
+din CLI, animații UI, export de buget fără coloana MODALITATE. Salvate ca patch-uri în
+`D:\teodor.fotciuc\downloads\arhiva-adm-expert-clona-veche`, împreună cu `.env`-ul vechi.
 
 **Pornire locală:** `docker compose -f docker-compose.dev.yml up`. Rebuild de producție:
 `docker compose up --build`. Detaliile în `docs/DEV-WORKFLOW.md`, care e scris explicit pentru
