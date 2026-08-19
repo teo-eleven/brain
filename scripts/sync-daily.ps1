@@ -16,9 +16,23 @@
 
       3. Face commit LOCAL in vault.
 
-    Vaultul e local-only, fara remote: contine detalii din proiectele de
-    serviciu, care nu au ce cauta pe un cont personal de GitHub. Scriptul nu
-    face push si nu trebuie sa capete inapoi aceasta capacitate.
+    SCRIPTUL nu face push si nu trebuie sa capete aceasta capacitate. Motivul e
+    ca ruleaza des si aproape automat, iar publicarea unor note care contin
+    detalii din proiecte de serviciu nu e o decizie care se ia dintr-o rulare de
+    rutina. Ea se ia manual, de fiecare data.
+
+    VAULTUL, in schimb, ARE un remote: `tewtzu-ctrl/brain`, repo PRIVAT pe cont
+    personal, impins manual (primul push: 18.08). E o decizie asumata, nu o
+    scapare. Alternativa curata - local-only, fara remote deloc - ar insemna ca
+    vaultul n-are nicio copie in afara laptopului, adica exact riscul reprosat
+    celorlalte proiecte.
+
+    Conditia care tine decizia in picioare: repo-ul ramane PRIVAT. Daca devine
+    public, notele de serviciu de aici nu mai au ce cauta in el.
+
+    Nota: formularea de aici spunea, pana pe 19.08, "vaultul e local-only, fara
+    remote". Era falsa de pe 18.08. Corectata dupa un inventar al repo-urilor
+    locale - vezi daily/2026-08-19.
 
 .EXAMPLE
     .\sync-daily.ps1
