@@ -22,13 +22,6 @@
       }
     },
     {
-      "query": "tag:#personal",
-      "color": {
-        "a": 1,
-        "rgb": 16281969
-      }
-    },
-    {
       "query": "tag:#azi",
       "color": {
         "a": 1,
@@ -74,6 +67,6 @@
   "repelStrength": 11,
   "linkStrength": 0.8,
   "linkDistance": 200,
-  "scale": 0.25438094278962725,
+  "scale": 0.4999999999999955,
   "close": true
 }

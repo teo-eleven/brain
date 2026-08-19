@@ -49,6 +49,11 @@ nu teorie despre AI**.
 - [[Tracing LLM - spans si context]] — ce nu ajunge în trace nu se poate măsura
 - [[Cum citesc un trace]] — în ce ordine te uiți
 
+## Metoda de evaluare
+
+- [[Tipuri de agenti AI]] — cele 8 tipuri tehnice și cei 15 agenți ECF, etichetați
+- [[Cum testez un agent nou]] — ce se refolosește din harness și ce se scrie din nou
+
 ## Proiecte
 
 - [[QA AI Agent]] — infrastructura de evaluare, proiectul principal

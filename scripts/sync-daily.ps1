@@ -64,7 +64,7 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 #   Note    = ce nota din vault il reprezinta (primeste #azi cand lucrezi acolo)
 # ---------------------------------------------------------------------------
 $TRACKED = @(
-    @{ Name = 'ecf-adm-expert';      Path = 'C:\Users\teodor.fotciuc\ecf-adm-expert';      Note = 'projects/ADM Expert.md' }
+    @{ Name = 'ecf-adm-expert';      Path = 'D:\teodor.fotciuc\ecf-adm-expert';             Note = 'projects/ADM Expert.md' }
     @{ Name = 'ecf_app_web-doc_extract_studio'; Path = 'D:\teodor.fotciuc\ecf_app_web-doc_extract_studio'; Note = 'projects/QA AI Agent.md' }
     @{ Name = 'qa-ai-agent'; Path = 'D:\teodor.fotciuc\qa-ai-agent'; Note = 'projects/QA AI Agent.md' }
 )
@@ -545,7 +545,7 @@ function Build-Canvas {
     $ANCHORS = @(
         @{ File = '00 START HERE.md';                 Y = -340 }
         @{ File = 'Dashboard.md';                     Y = -110 }
-        @{ File = 'maps/MOC Vault - cum functioneaza.md'; Y = 130 }
+        @{ File = 'maps/MOC Vault.md';                    Y = 130 }
     )
 
     $anchorIds = @{}

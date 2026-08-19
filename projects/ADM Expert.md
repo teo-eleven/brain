@@ -105,5 +105,3 @@ construită împotriva domeniului — vezi [[Experiment inainte de concluzie]] �
 nu prin API — `tests/test_randuri_comune_migration.py` vs `tests/test_manager_super.py`.
 
 Legături: [[MOC Operatii zilnice]], [[MOC Sedinte]]
-
-#azi
