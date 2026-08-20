@@ -393,5 +393,3 @@ Prompturi: [[Versionarea prompturilor]] și [[Evals inainte de prompt changes]].
       rulat niciodată, și de-asta două defecte de mediu au trăit luni de zile
 
 Legături: [[MOC Stack AI]], [[MOC AI Engineer]], [[MOC Operatii zilnice]], [[MOC Studiu]]
-
-#azi
