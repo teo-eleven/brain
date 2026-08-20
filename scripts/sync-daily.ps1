@@ -81,6 +81,7 @@ $TRACKED = @(
     @{ Name = 'ecf-adm-expert';      Path = 'D:\teodor.fotciuc\ecf-adm-expert';             Note = 'projects/ADM Expert.md' }
     @{ Name = 'ecf_app_web-doc_extract_studio'; Path = 'D:\teodor.fotciuc\ecf_app_web-doc_extract_studio'; Note = 'projects/QA AI Agent.md' }
     @{ Name = 'qa-ai-agent'; Path = 'D:\teodor.fotciuc\qa-ai-agent'; Note = 'projects/QA AI Agent.md' }
+    @{ Name = 'people&culture'; Path = 'D:\teodor.fotciuc\people&culture'; Note = 'projects/HR ScoreBoard.md' }
 )
 
 $MARK_START   = '<!-- COMMITS:START - generat de scripts/sync-daily.ps1, nu edita intre markeri -->'

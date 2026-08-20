@@ -62,6 +62,9 @@ existau nicăieri altundeva** (verificat pe `patch-id`, nu doar pe SHA): conturi
 din CLI, animații UI, export de buget fără coloana MODALITATE. Salvate ca patch-uri în
 `D:\teodor.fotciuc\downloads\arhiva-adm-expert-clona-veche`, împreună cu `.env`-ul vechi.
 
+Regula care a ieșit din episodul ăsta: [[Fara clone locale]]. Copia de 347 MB și backupul de
+05.08 sunt încă pe disc — verificate ca redundante, ștergerea de rulat manual, în [[CURATENIE]].
+
 **Pornire locală:** `docker compose -f docker-compose.dev.yml up`. Rebuild de producție:
 `docker compose up --build`. Detaliile în `docs/DEV-WORKFLOW.md`, care e scris explicit pentru
 echipa de trei.
@@ -116,3 +119,5 @@ construită împotriva domeniului — vezi [[Experiment inainte de concluzie]] �
 nu prin API — `tests/test_randuri_comune_migration.py` vs `tests/test_manager_super.py`.
 
 Legături: [[MOC Operatii zilnice]], [[MOC Sedinte]]
+
+#azi
