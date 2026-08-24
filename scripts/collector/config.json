@@ -62,6 +62,8 @@
     "radaciniRepo": ["D:/teodor.fotciuc"],
     "_recuperareDinGit": "Daca `true`, commit-urile de azi gasite direct in repo-uri dar ABSENTE din jurnal sunt raportate separat, marcate ca recuperate. Asa un hook care n-a functionat se vede, in loc sa produca o zi pe jumatate goala.",
     "recuperareDinGit": true,
+    "_doarCommiturileMele": "Recuperarea de mai sus citeste `git log --all`, care include si ramurile de la remote. Intr-un repo de echipa, dupa un `git fetch`, alea sunt commit-urile COLEGILOR: ziua ar raporta munca lor ca fiind a mea, iar subiectele lor ar ajunge scrise intr-o nota care se comite. Cu `true` se filtreaza dupa `user.email` configurat in repo-ul respectiv, deci merge si acolo unde folosesti alt email. Un repo fara identitate git nu se recupereaza deloc — mai bine niciun commit decat toate.",
+    "doarCommiturileMele": true,
     "_maxFisiereNecomis": "Cate fisiere necomise se listeaza per proiect in nota zilei. Separat de `git.maxFisiereListate`: acolo e vorba de un commit incheiat, aici de un santier in lucru, care poate avea zeci de fisiere si ar ineca nota.",
     "maxFisiereNecomis": 12
   },

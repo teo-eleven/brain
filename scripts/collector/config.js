@@ -249,6 +249,10 @@ function incarcaConfig(optiuni = {}) {
         raport.recuperareDinGit ?? true,
         "raport.recuperareDinGit",
       ),
+      doarCommiturileMele: cereBoolean(
+        raport.doarCommiturileMele ?? true,
+        "raport.doarCommiturileMele",
+      ),
       maxFisiereNecomis: cereIntregPozitiv(
         raport.maxFisiereNecomis ?? 12,
         "raport.maxFisiereNecomis",
@@ -294,7 +298,18 @@ function incarcaConfig(optiuni = {}) {
   };
 }
 
+// Validatorii sunt expusi ca sa-i foloseasca si `scripts/gata-pe-azi/`:
+// aceleasi reguli de validare in ambele module, un singur loc de reparat.
+const validatori = {
+  cereObiect,
+  cereText,
+  cereIntregPozitiv,
+  cereListaDeTexte,
+  cereBoolean,
+};
+
 module.exports = {
+  validatori,
   incarcaConfig,
   ConfigInvalid,
   CALE_CONFIG,

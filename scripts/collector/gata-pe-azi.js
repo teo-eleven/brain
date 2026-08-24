@@ -125,12 +125,30 @@ function starePrezenta(config, zi) {
     rezultat.caiPerProiect[proiect].push(cale);
 
     if (!config.raport.recuperareDinGit) continue;
+    // `--all` include si `refs/remotes`, deci dupa un simplu `git fetch` intr-un
+    // repo de echipa aici intrau commit-urile COLEGILOR din ziua respectiva. Doua
+    // pagube deodata: nota zilei raporta munca altcuiva ca fiind a mea („commit-uri
+    // gasite direct in repo-uri"), iar subiectele lor ajungeau scrise intr-o nota
+    // care se comite. De aceea se filtreaza pe autor.
+    //
+    // Autorul nu e scris in cod: e identitatea git A REPO-ULUI ALA (`user.email`),
+    // deci merge si acolo unde folosesti alt email decat cel obisnuit. Daca repo-ul
+    // n-are identitate configurata, nu se inventeaza una — se renunta la recuperare
+    // pentru el, fiindca „toate commit-urile" ar fi un raspuns mai gresit decat
+    // niciunul. Comutatorul `raport.doarCommiturileMele` lasa vechiul comportament
+    // la indemana, din config.
+    const doarAleMele = config.raport.doarCommiturileMele;
+    const autor = doarAleMele
+      ? git(["config", "--get", "user.email"], cale, config)
+      : null;
+    if (doarAleMele && !autor) continue;
     const log = git(
       [
         "log",
         "--all",
         `--since=${inceput}`,
         `--until=${sfarsit}`,
+        ...(autor ? [`--author=${autor}`] : []),
         "--pretty=format:%h%x1f%s%x1f%aI",
       ],
       cale,
@@ -184,15 +202,33 @@ function stangeFapte(config, zi, sedinte = [], prezent = null) {
   // Commit-uri gasite in repo-uri dar ABSENTE din jurnal: hook-ul nu le-a prins
   // (nu era instalat inca, a esuat, sau repo-ul e o clona). Se raporteaza
   // separat, ca lipsa lui sa se VADA, nu sa produca o zi mai saraca.
-  const cunoscute = new Set(evenimente.filter((e) => e.sha).map((e) => e.sha));
+  //
+  // Doua sha-uri se compara pe PREFIXUL COMUN, nu ca siruri egale.
+  //
+  // Jurnalul retine `sha.slice(0, 7)`, dar `git log --pretty=%h` NU da mereu 7
+  // caractere: git isi lungeste singur abrevierea in repo-urile mari, iar
+  // `core.abbrev` din gitconfig o poate fixa la orice valoare. Intr-un asemenea
+  // repo „a1b2c3d" (din jurnal) nu se potrivea NICIODATA cu „a1b2c3d4" (din
+  // scanare), deci fiecare commit deja jurnalizat aparea a doua oara sub
+  // „gasite direct in repo-uri, absente din jurnal": ziua raporta munca dubla
+  // si, pe deasupra, o alarma falsa ca hook-ul n-a functionat.
+  //
+  // Prefixul comun rezolva ambele sensuri (jurnal mai scurt sau mai lung) fara
+  // sa introduca inca o lungime de reglat undeva.
+  const acelasiCommit = (a, b) =>
+    Boolean(a) && Boolean(b) && (a.startsWith(b) || b.startsWith(a));
+  const cunoscute = evenimente.filter((e) => e.sha).map((e) => e.sha);
   // Fara duplicate: cand acelasi repo exista la doua cai, `git log` il gaseste
   // de doua ori, iar ziua ar arata munca dubla. Cheia e (proiect, sha).
-  const vazute = new Set();
+  const vazute = [];
   const recuperate = (prezent ? prezent.commituriGasite : []).filter((c) => {
-    if (cunoscute.has(c.sha)) return false;
-    const cheie = `${c.proiect}|${c.sha}`;
-    if (vazute.has(cheie)) return false;
-    vazute.add(cheie);
+    if (cunoscute.some((s) => acelasiCommit(s, c.sha))) return false;
+    if (
+      vazute.some((v) => v.proiect === c.proiect && acelasiCommit(v.sha, c.sha))
+    ) {
+      return false;
+    }
+    vazute.push({ proiect: c.proiect, sha: c.sha });
     return true;
   });
 
@@ -367,6 +403,21 @@ function asiguraNota(config, zi) {
  * ancora `inainteDe` (se aseaza inaintea ei, ca tot ce e generat sa stea
  * grupat), nu exista niciuna (se adauga la final). Nimic din afara markerilor
  * nu se atinge in niciunul dintre cazuri.
+ *
+ * AL PATRULEA CAZ, care era un defect real: marcajul de START exista, dar cel de
+ * FINAL lipseste — sters din greseala la editarea notei. Se cadea pe ramura
+ * „adauga la final", deci nota ramanea cu DOUA marcaje de start. La rularea
+ * URMATOARE, `indexOf(marcajStart)` gasea marcajul orfan, iar
+ * `indexOf(marcajFinal, i)` gasea finalul blocului NOU — si tot ce era intre ele
+ * disparea. Adica exact notele scrise de mana, taman lucrul pe care fisierul
+ * asta promite in antet ca nu-l atinge niciodata.
+ *
+ * De aceea acum nu se mai scrie NIMIC in acest caz: se intoarce `null`, iar
+ * apelantul raporteaza blocul rupt. O zi de fapte nescrise se recupereaza la
+ * rularea urmatoare, dupa ce omul pune marcajul la loc; un paragraf scris de
+ * mana, nu.
+ *
+ * @returns {string|null} textul nou, sau `null` daca blocul din nota e rupt
  */
 function pune(text, bloc, config) {
   const { marcajStart, marcajFinal, inainteDe } = config.raport;
@@ -377,6 +428,7 @@ function pune(text, bloc, config) {
     if (j !== -1) {
       return text.slice(0, i) + bloc + text.slice(j + marcajFinal.length);
     }
+    return null; // start fara final: vezi nota de mai sus
   }
 
   const k = inainteDe ? text.indexOf(inainteDe) : -1;
@@ -419,7 +471,10 @@ function ruleaza(optiuni = {}) {
   const fisier = asiguraNota(config, zi);
   const inainte = fs.readFileSync(fisier, "utf8");
   const dupa = pune(inainte, construiesteBloc(fapte, config), config);
-  const schimbat = dupa !== inainte;
+  // `null` = blocul din nota e rupt (start fara final). Nota ramane NEATINSA,
+  // iar motivul urca in rezultat ca sa fie raportat, nu inghitit.
+  const blocRupt = dupa === null;
+  const schimbat = !blocRupt && dupa !== inainte;
   if (schimbat) fs.writeFileSync(fisier, dupa, "utf8");
 
   // 4. scriptul greu, o singura data
@@ -432,6 +487,11 @@ function ruleaza(optiuni = {}) {
     zi,
     nota: fisier,
     notaSchimbata: schimbat,
+    blocRupt,
+    motivBlocRupt: blocRupt
+      ? `nota are ${config.raport.marcajStart} fara ${config.raport.marcajFinal}; ` +
+        "pune marcajul de final la loc si reruleaza — pana atunci nota nu se atinge"
+      : null,
     vederi: inchise.zile.map((z) => z.zi),
     fapte,
     sync,
