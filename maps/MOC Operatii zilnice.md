@@ -38,6 +38,15 @@ graph LR
 - [[Experiment inainte de concluzie]] — reproductibilitatea arată că _există_ o cauză, nu _care_ e
 - [[Inregistrare si reluare in teste]] — iterezi pe graderi gratis, fără rețea
 
+## Decizii luate
+
+- [[Fara clone locale]] — un exemplar per proiect; backupul se face prin push, nu prin copiere
+
+## Operațional, o dată
+
+- [[CURATENIE]] — ce e dovedit redundant pe stație și cum a fost dovedit (19.08)
+- [[COMENZI-REMOTE]] — comenzile de remote+push pentru repo-urile fără backup, verificate și nerulate
+
 ## Cu agenți
 
 - [[Lucrul cu agenti in terminal]] — nodul care leagă codul de agenți

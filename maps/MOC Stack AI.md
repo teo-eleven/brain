@@ -96,3 +96,4 @@ construiește peste asta.
 
 - [[MOC Operatii zilnice]] — ce faci cu uneltele astea
 - [[QA AI Agent]] — proiectul unde se folosesc toate
+- [[Cum testez un agent nou]] — stackul de mai sus, aplicat la un agent care nu e „Extracție"

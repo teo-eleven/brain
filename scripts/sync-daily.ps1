@@ -16,9 +16,23 @@
 
       3. Face commit LOCAL in vault.
 
-    Vaultul e local-only, fara remote: contine detalii din proiectele de
-    serviciu, care nu au ce cauta pe un cont personal de GitHub. Scriptul nu
-    face push si nu trebuie sa capete inapoi aceasta capacitate.
+    SCRIPTUL nu face push si nu trebuie sa capete aceasta capacitate. Motivul e
+    ca ruleaza des si aproape automat, iar publicarea unor note care contin
+    detalii din proiecte de serviciu nu e o decizie care se ia dintr-o rulare de
+    rutina. Ea se ia manual, de fiecare data.
+
+    VAULTUL, in schimb, ARE un remote: `tewtzu-ctrl/brain`, repo PRIVAT pe cont
+    personal, impins manual (primul push: 18.08). E o decizie asumata, nu o
+    scapare. Alternativa curata - local-only, fara remote deloc - ar insemna ca
+    vaultul n-are nicio copie in afara laptopului, adica exact riscul reprosat
+    celorlalte proiecte.
+
+    Conditia care tine decizia in picioare: repo-ul ramane PRIVAT. Daca devine
+    public, notele de serviciu de aici nu mai au ce cauta in el.
+
+    Nota: formularea de aici spunea, pana pe 19.08, "vaultul e local-only, fara
+    remote". Era falsa de pe 18.08. Corectata dupa un inventar al repo-urilor
+    locale - vezi daily/2026-08-19.
 
 .EXAMPLE
     .\sync-daily.ps1
@@ -64,9 +78,10 @@ $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 #   Note    = ce nota din vault il reprezinta (primeste #azi cand lucrezi acolo)
 # ---------------------------------------------------------------------------
 $TRACKED = @(
-    @{ Name = 'ecf-adm-expert';      Path = 'C:\Users\teodor.fotciuc\ecf-adm-expert';      Note = 'projects/ADM Expert.md' }
+    @{ Name = 'ecf-adm-expert';      Path = 'D:\teodor.fotciuc\ecf-adm-expert';             Note = 'projects/ADM Expert.md' }
     @{ Name = 'ecf_app_web-doc_extract_studio'; Path = 'D:\teodor.fotciuc\ecf_app_web-doc_extract_studio'; Note = 'projects/QA AI Agent.md' }
     @{ Name = 'qa-ai-agent'; Path = 'D:\teodor.fotciuc\qa-ai-agent'; Note = 'projects/QA AI Agent.md' }
+    @{ Name = 'people&culture'; Path = 'D:\teodor.fotciuc\people&culture'; Note = 'projects/HR ScoreBoard.md' }
 )
 
 $MARK_START   = '<!-- COMMITS:START - generat de scripts/sync-daily.ps1, nu edita intre markeri -->'
@@ -545,7 +560,7 @@ function Build-Canvas {
     $ANCHORS = @(
         @{ File = '00 START HERE.md';                 Y = -340 }
         @{ File = 'Dashboard.md';                     Y = -110 }
-        @{ File = 'maps/MOC Vault - cum functioneaza.md'; Y = 130 }
+        @{ File = 'maps/MOC Vault.md';                    Y = 130 }
     )
 
     $anchorIds = @{}
@@ -802,4 +817,4 @@ $msg = "notes: sync $Date - $($section.Commits) commit-uri din repo-urile urmari
 git -C $Vault commit -q -m $msg
 Write-Host ""
 Write-Host "  commit vault: $(git -C $Vault rev-parse --short HEAD)"
-Write-Host "  vault local-only, fara push" -ForegroundColor DarkGray
+Write-Host "  commit local; push-ul spre tewtzu-ctrl/brain (privat) se face manual" -ForegroundColor DarkGray
