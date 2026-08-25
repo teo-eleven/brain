@@ -1,0 +1,90 @@
+{
+  "_": "Toate setarile colectorului stau AICI. Nicio valoare de mai jos nu are voie sa fie scrisa in cod.",
+
+  "vault": {
+    "_cale": "Radacina vaultului. Gol = se deduce din pozitia scriptului (scripts/collector/../..). Variabila de mediu BRAIN_VAULT bate si fisierul, si deducerea.",
+    "cale": "",
+    "folderEvenimente": ".events",
+    "numeFisierZi": "{zi}.jsonl"
+  },
+
+  "hook": {
+    "_timeoutTotalSecunde": "Plafon pentru TOT procesul colectorului, pus de hook cu `timeout`. Plasa de siguranta independenta de ce se intampla inauntru: `git.timeoutMs` acopera doar interogarile git, nu si o scriere blocata pe un disc de retea. Citit din acest fisier de `githooks/post-commit`.",
+    "timeoutTotalSecunde": 20
+  },
+
+  "git": {
+    "_timeoutMs": "Cat astept o interogare git inainte sa renunt. Hook-ul ruleaza la fiecare commit; mai bine un eveniment lipsa decat un commit blocat.",
+    "timeoutMs": 5000,
+    "_maxFisiereListate": "Cate cai de fisier scriu in eveniment. Numaratoarea `fisiere` ramane completa oricum.",
+    "maxFisiereListate": 40
+  },
+
+  "evenimente": {
+    "_activate": "Ce tipuri de evenimente se scriu. Scoate unul de aici ca sa-l opresti, fara sa atingi codul.",
+    "activate": ["commit", "sesiune"]
+  },
+
+  "sesiune": {
+    "_": "Evenimentul de la finalul unei sesiuni Claude Code (hook-ul `SessionEnd`). Se declanseaza O SINGURA data per sesiune — spre deosebire de `Stop`, care se declanseaza dupa fiecare raspuns si ar fi umplut jurnalul cu zeci de intrari pe zi.",
+    "_doarInRepoGit": "Daca `true`, o sesiune deschisa intr-un folder care nu e repo git nu produce niciun eveniment. Pus pe `false` daca vrei sa vezi si lucrul din afara git-ului — cu pretul sesiunilor deschise prin foldere intamplatoare.",
+    "doarInRepoGit": true
+  },
+
+  "commit": {
+    "_tipareAutomate": "Expresii regulate peste subiectul commit-ului. Ce se potriveste e marcat `automat: true` — marcat, NU exclus: o zi in care intretinerea n-a rulat trebuie sa se vada.",
+    "tipareAutomate": ["^notes: sync "]
+  },
+
+  "incheiere": {
+    "_": "Transformarea jurnalului brut (.jsonl) in vederea citita de om. Rulata la inceputul unei sesiuni Claude Code, pentru zilele neincheiate.",
+    "folderVedere": "inbox",
+    "numeFisierVedere": "evenimente-{zi}.md",
+    "_zileInUrma": "Cate zile in urma se verifica daca au ramas neincheiate. Acopera un weekend plus o zi libera.",
+    "zileInUrma": 7,
+    "_ruleazaSyncDaily": "Dupa regenerarea vederilor, cheama scriptul greu (blocul de commit-uri, tag-urile #azi, canvas-ul). Pus pe false, vederile se genereaza si scriptul nu se atinge.",
+    "ruleazaSyncDaily": true,
+    "caleSyncDaily": "scripts/sync-daily.ps1",
+    "timeoutSyncDailySecunde": 180
+  },
+
+  "raport": {
+    "_": "Blocul de FAPTE scris in nota zilei de comanda `/gata-pe-azi`. Doar fapte verificabile — sectiunile scrise de mana nu se ating niciodata.",
+    "folderZile": "daily",
+    "numeFisierZi": "{zi}.md",
+    "marcajStart": "<!-- FAPTE:START - generat de scripts/collector/gata-pe-azi.js, nu edita intre markeri -->",
+    "marcajFinal": "<!-- FAPTE:END -->",
+    "_inainteDe": "Blocul se aseaza inaintea acestui text din nota, ca tot ce e generat sa stea grupat. Daca nu se gaseste, blocul se pune la finalul notei.",
+    "inainteDe": "<!-- COMMITS:START",
+    "sablon": "_templates/Daily note.md",
+
+    "_radaciniRepo": "Unde se cauta repo-uri, la rularea comenzii. Jurnalul vede doar commit-uri si sesiuni INCHEIATE; scanarea de aici prinde si munca inca necomisa, plus commit-urile pe care hook-ul le-ar fi ratat. Cautarea e pe un singur nivel sub fiecare radacina.",
+    "radaciniRepo": ["D:/teodor.fotciuc"],
+    "_recuperareDinGit": "Daca `true`, commit-urile de azi gasite direct in repo-uri dar ABSENTE din jurnal sunt raportate separat, marcate ca recuperate. Asa un hook care n-a functionat se vede, in loc sa produca o zi pe jumatate goala.",
+    "recuperareDinGit": true,
+    "_doarCommiturileMele": "Recuperarea de mai sus citeste `git log --all`, care include si ramurile de la remote. Intr-un repo de echipa, dupa un `git fetch`, alea sunt commit-urile COLEGILOR: ziua ar raporta munca lor ca fiind a mea, iar subiectele lor ar ajunge scrise intr-o nota care se comite. Cu `true` se filtreaza dupa `user.email` configurat in repo-ul respectiv, deci merge si acolo unde folosesti alt email. Un repo fara identitate git nu se recupereaza deloc — mai bine niciun commit decat toate.",
+    "doarCommiturileMele": true,
+    "_maxFisiereNecomis": "Cate fisiere necomise se listeaza per proiect in nota zilei. Separat de `git.maxFisiereListate`: acolo e vorba de un commit incheiat, aici de un santier in lucru, care poate avea zeci de fisiere si ar ineca nota.",
+    "maxFisiereNecomis": 12
+  },
+
+  "proiecte": {
+    "_harta": "Identitate de remote -> numele notei de proiect din vault. Ce e aici devine legatura [[...]] in vedere, deci intra in graf. Ce lipseste apare cu numele scurt din remote, fara legatura.",
+    "harta": {
+      "https://github.com/econfaire/ecf-adm-expert": "ADM Expert",
+      "https://github.com/tewtzu-ctrl/brain": "MOC Vault"
+    }
+  },
+
+  "proiecteIgnorate": {
+    "_": "Proiecte care nu produc niciun eveniment. `dupaRemote` se compara pe identitatea normalizata (fara schema, fara .git, litere mici), `dupaCale` pe inceputul caii absolute.",
+    "dupaRemote": [],
+    "dupaCale": []
+  },
+
+  "diagnostic": {
+    "_": "Erorile colectorului nu au voie sa strice comanda care l-a chemat, deci nu se ridica la suprafata. Se scriu aici, ca sa nu dispara — un colector care esueaza tacut e mai rau decat unul care lipseste.",
+    "logErori": true,
+    "fisierLogErori": ".events/erori.log"
+  }
+}

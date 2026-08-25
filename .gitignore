@@ -15,6 +15,12 @@
 scripts/teams-cache.json
 Azi.canvas
 
+# Jurnalul brut de evenimente (scripts/collector). Se rescrie zilnic si e doar
+# sursa din care se genereaza vederea din inbox/, deci in istoric ar fi zgomot.
+# Ramane LOCAL si pentru ca listeaza cai si nume de fisiere din repo-urile de
+# serviciu, exact ca teams-cache.json de mai sus.
+.events/
+
 # Windows / macOS
 Thumbs.db
 desktop.ini

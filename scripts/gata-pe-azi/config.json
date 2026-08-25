@@ -1,0 +1,208 @@
+{
+  "_": "Setarile fazei de verificare, reparare si publicare din `gata pe azi`. Colectorul isi are configul lui, in scripts/collector — acela strange date, acesta verifica si publica.",
+  "asteptare": {
+    "_": "Faza 0. Se asteapta sarcinile de fundal pornite in sesiune. NU se opresc serverele de dezvoltare si nici containerele Docker: alea trebuie sa ramana in picioare.",
+    "timeoutSecunde": 600
+  },
+  "verificari": {
+    "_timeoutImplicitSecunde": "Plafon per comanda de verificare, daca reteta proiectului nu spune altfel. Suita Python a lui ADM Expert dureaza ~5 minute, de aceea implicitul e generos.",
+    "timeoutImplicitSecunde": 600,
+    "_liniiPastrate": "Cate linii din iesirea unei comenzi se pastreaza pentru raport. Suficient cat sa se vada esecul, nu cat sa inece raportul.",
+    "liniiPastrate": 25,
+    "_timeoutSanatateSecunde": "Cat astept raspunsul unui health-check inainte sa-l declar cazut. Scurt deliberat: intrebarea e daca aplicatia raspunde ACUM, nu daca raspunde cu rabdare.",
+    "timeoutSanatateSecunde": 5,
+    "_maxIesireMb": "Plafon pentru iesirea unei comenzi de verificare. Peste el comanda e taiata si raportata ca esec — o suita care scuipa sute de MB inseamna oricum ca ceva e in neregula.",
+    "maxIesireMb": 32
+  },
+  "reparatii": {
+    "_": "Faza 4. Se repara automat DOAR ce e critic sau inalt, iar dupa fiecare reparatie se rerulează verificarile. O reparatie care face ceva rosu se anuleaza si se raporteaza ca nereparabila automat.",
+    "severitatiReparate": ["CRITIC", "INALT"],
+    "_maxPerRulare": "Plafon de reparatii intr-o singura rulare, ca o zi proasta sa nu devina un maraton de rescris nesupravegheat.",
+    "maxPerRulare": 8
+  },
+  "git": {
+    "_": "Faza 6. Branch nou din baza proiectului, commit local. Push-ul NU se face de aici — se cere confirmare, o singura data, dupa ce lista e aratata.",
+    "prefixRamura": "fix/review",
+    "_tiparRamura": "Substitutii: {prefix}, {zi}, {proiect}, {sufix}",
+    "tiparRamura": "{prefix}-{zi}-{sufix}",
+    "pushAutomat": false,
+    "_timeoutMs": "Cat astept o comanda git (interogare sau commit) inainte sa renunt. Acopera si faza de plan, si faza de commit — aceeasi intrebare, un singur plafon de reglat.",
+    "timeoutMs": 60000,
+    "_ramuriInterzise": "Nu se comite niciodata direct pe astea; daca proiectul e pe una dintre ele, se creeaza obligatoriu branch nou.",
+    "ramuriInterzise": ["main", "master", "dev", "develop"],
+    "_creeazaRamuraNoua": "Implicit se creeaza mereu ramura noua. Un proiect poate cere sa se comita PE RAMURA CURENTA (`creeazaRamuraNoua: false`) — cazul vaultului, care are deja fluxul lui de ramuri. Chiar si atunci, o ramura protejata (main/dev/master) forteaza ramura noua: regula aia nu se poate anula din config."
+  },
+  "proiecte": {
+    "_": "REGISTRUL. Un proiect care nu e aici NU e atins, oricata munca necomisa ar avea — asta e bariera impotriva publicarii pe proiecte nimerite din intamplare. Fiecare intrare isi aduce reteta ei de verificare, fiindca fiecare proiect se verifica altfel.",
+    "ecf-adm-expert": {
+      "_": "Comenzile de mai jos sunt cele verificate ca functioneaza pe statia asta. Partea web ruleaza IN CONTAINER: Node-ul de pe host e v20, iar suita cere v24 — pe host cade cu ERR_REQUIRE_ESM.",
+      "cale": "D:/teodor.fotciuc/ecf-adm-expert",
+      "ramuraBaza": "dev",
+      "verificari": [
+        {
+          "nume": "pytest",
+          "comanda": "uv run pytest -q",
+          "cwd": ".",
+          "timeoutSecunde": 900
+        },
+        {
+          "nume": "ruff",
+          "comanda": "uv run ruff check .",
+          "cwd": "."
+        },
+        {
+          "nume": "typecheck web",
+          "comanda": "docker exec -w /build ecf-adm-expert-web-1 pnpm tsc -b --noEmit",
+          "cwd": "."
+        },
+        {
+          "nume": "teste web",
+          "comanda": "docker exec -w /build ecf-adm-expert-web-1 pnpm vitest run",
+          "cwd": "."
+        },
+        {
+          "nume": "lint web",
+          "comanda": "docker exec -w /build ecf-adm-expert-web-1 pnpm lint",
+          "cwd": "."
+        }
+      ],
+      "_sanatate": "Verificare ca aplicatia chiar raspunde, nu doar ca testele trec. Codul asteptat e cel de succes; orice altceva inseamna aplicatie cazuta.",
+      "sanatate": [
+        {
+          "nume": "API",
+          "url": "http://127.0.0.1:8103/api/health",
+          "codAsteptat": 200
+        },
+        {
+          "nume": "interfata",
+          "url": "http://127.0.0.1:3105/",
+          "codAsteptat": 200
+        }
+      ],
+      "_neacoperit": "Ce NU verifica nimic din lista de mai sus. Se scrie in raport ca atare — o acoperire pretinsa e mai rea decat una lipsa.",
+      "neacoperit": [
+        "apasarea reala a butoanelor in browser (nu exista teste E2E)",
+        "fluxurile cu upload de documente si integrarea Dext",
+        "exporturile Excel, verificate doar ca se genereaza, nu si continutul"
+      ]
+    },
+    "ecf-people-culture": {
+      "_": "Calea CANONICA de lucru e `people&culture` (confirmata de proprietar). Remote-ul se numeste altfel, `ecf-people-culture` — de aceea folderul `D:/teodor.fotciuc/ecf-people-culture` pare proiectul, dar e clona.",
+      "cale": "D:/teodor.fotciuc/people&culture",
+      "ramuraBaza": "main",
+      "verificari": [
+        {
+          "nume": "pytest",
+          "comanda": "uv run pytest -q",
+          "cwd": ".",
+          "timeoutSecunde": 900
+        },
+        {
+          "nume": "ruff",
+          "comanda": "uv run ruff check .",
+          "cwd": "."
+        },
+        {
+          "nume": "typecheck web",
+          "comanda": "pnpm typecheck",
+          "cwd": "apps/web"
+        },
+        {
+          "nume": "teste web",
+          "comanda": "pnpm test",
+          "cwd": "apps/web"
+        },
+        {
+          "nume": "lint web",
+          "comanda": "pnpm lint",
+          "cwd": "apps/web"
+        }
+      ],
+      "sanatate": [],
+      "neacoperit": [
+        "apasarea reala a butoanelor in browser (nu exista teste E2E)",
+        "importurile Excel, verificate doar pe parsare, nu si pe fisiere reale"
+      ]
+    },
+    "qa-ai-agent": {
+      "_": "NU ARE REMOTE. Se comite local, dar nu se poate urca — `publica()` o spune explicit, nu esueaza cu o eroare cruda de git.",
+      "cale": "D:/teodor.fotciuc/qa-ai-agent",
+      "ramuraBaza": "main",
+      "verificari": [
+        {
+          "nume": "pytest",
+          "comanda": "uv run pytest -q",
+          "cwd": ".",
+          "timeoutSecunde": 900
+        }
+      ],
+      "sanatate": [],
+      "neacoperit": [
+        "rularile de evaluare pe seturi de date (dureaza si costa apeluri de model)",
+        "promptfoo si comparatiile de prompturi"
+      ]
+    },
+    "voice-chat-pizzerie": {
+      "cale": "D:/teodor.fotciuc/voice-chat-pizzerie",
+      "ramuraBaza": "main",
+      "verificari": [
+        {
+          "nume": "pytest",
+          "comanda": "uv run pytest -q",
+          "cwd": ".",
+          "timeoutSecunde": 900
+        }
+      ],
+      "sanatate": [],
+      "neacoperit": [
+        "fluxul vocal capat-la-capat (cere microfon si un apel real)",
+        "interfetele HTML, care n-au teste"
+      ]
+    },
+    "brain": {
+      "_": "Vaultul insusi. `creeazaRamuraNoua: false` fiindca are deja fluxul lui (notes/... -> PR -> main); o ramura noua pe zi l-ar fragmenta. ATENTIE la ordine: faza 7 ruleaza `sync-daily.ps1`, care face `git add -A` si inca un commit — deci vaultul primeste DOUA commit-uri, unul de la faza 6 si unul de la sincronizare.",
+      "cale": "D:/teodor.fotciuc/brain",
+      "ramuraBaza": "main",
+      "creeazaRamuraNoua": false,
+      "verificari": [
+        {
+          "nume": "teste",
+          "comanda": "node --test scripts/collector scripts/gata-pe-azi",
+          "cwd": ".",
+          "timeoutSecunde": 900
+        },
+        {
+          "nume": "integritate vault",
+          "comanda": "node scripts/vault-check.js",
+          "cwd": "."
+        }
+      ],
+      "sanatate": [],
+      "neacoperit": [
+        "randarea reala in Obsidian (grafic, canvas, plugin-uri)",
+        "sync-daily.ps1 nu are teste automate"
+      ]
+    }
+  },
+  "ziuaDeLucru": {
+    "_": "Ziua de lucru nu e ziua calendaristica. Cine spune „gata pe azi\" la 01:30 vorbeste despre ziua care tocmai s-a incheiat, nu despre cea care incepe. Sub ora asta, ziua de lucru e cea precedenta.",
+    "oraStart": 5
+  },
+  "inafaraRegistrului": {
+    "_": "Cai lasate DELIBERAT in afara registrului, cu motivul scris. Diferenta fata de a le omite pur si simplu: aici apar in raport ca decizie („sarit deliberat\"), nu ca scapare („lipseste din registru\"). Un motiv scris azi e singurul lucru care mai poate fi verificat peste sase luni.",
+    "cai": [
+      {
+        "cale": "D:/teodor.fotciuc/brain",
+        "motiv": "e in registru cu numele `brain`; intrarea asta ramane doar ca sa nu fie raportat de doua ori"
+      },
+      {
+        "cale": "D:/teodor.fotciuc/ecf-people-culture",
+        "motiv": "clona; se lucreaza in D:/teodor.fotciuc/people&culture, care e in registru (vezi ADR Fara clone locale)"
+      },
+      {
+        "cale": "D:/teodor.fotciuc/ecf_app_web-doc_extract_studio",
+        "motiv": "feature primit de la indrumatori, nu munca proprie — se lasa exact cum e; nu se verifica, nu se repara, nu se comite"
+      }
+    ]
+  }
+}

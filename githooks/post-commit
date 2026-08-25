@@ -1,0 +1,117 @@
+#!/bin/sh
+#
+# post-commit — trimite commit-ul catre colectorul de evenimente al vaultului.
+#
+# Se activeaza pentru TOATE repo-urile de pe statie printr-o singura setare:
+#   git config --global core.hooksPath "D:/teodor.fotciuc/brain/githooks"
+# Asa prinde si repo-urile clonate maine, fara niciun pas de instalare per
+# proiect si fara sa lase vreun fisier in repo-urile de echipa.
+#
+# Reguli, in ordinea importantei:
+#
+#   1. NU are voie sa strice commit-ul. Orice esec al colectorului e inghitit
+#      aici (`|| true`) si iesirea e mereu 0. Un jurnal ratat e un inconvenient;
+#      un `git commit` cazut din cauza jurnalului e un motiv sa dezactivezi tot.
+#   2. Nu scrie nimic pe stdout/stderr. Iesirea lui `git commit` ramane curata.
+#   3. Nicio cale scrisa in fisier: colectorul se afla relativ la hook-ul insusi
+#      ($0 primeste calea completa de la git), cu BRAIN_VAULT ca rezerva.
+#
+# `core.hooksPath` inlocuieste complet `.git/hooks`, deci un hook local al
+# proiectului n-ar mai rula niciodata. De aceea e chemat explicit la final:
+# altfel activarea globala ar dezactiva tacut hook-urile altor unelte (husky
+# si celelalte), iar cauza ar fi imposibil de ghicit peste sase luni.
+
+# `${0%/*}` in loc de `dirname`, si mai jos `${0##*/}` in loc de `basename`:
+# sunt expansiuni interne ale shell-ului, deci gratuite. `dirname` e un program
+# separat, iar pe statia asta orice proces nou costa ~170 ms — la fiecare commit,
+# doar ca sa afle un nume de folder pe care shell-ul il stie deja.
+case "$0" in
+  */*) DIR_HOOK="${0%/*}" ;;
+  *) DIR_HOOK="." ;;
+esac
+COLECTOR="$DIR_HOOK/../scripts/collector/collect-event.js"
+
+if [ ! -f "$COLECTOR" ] && [ -n "$BRAIN_VAULT" ]; then
+  COLECTOR="$BRAIN_VAULT/scripts/collector/collect-event.js"
+fi
+
+# Colectorul pleaca IN FUNDAL, iar commit-ul nu-l mai asteapta.
+#
+# Nu e o optimizare de dragul cifrelor, e o conditie de folosire. Masurat pe
+# statia asta (probabil scanare antivirus la fiecare proces nou):
+#   pornirea lui `node` ~410 ms · un `git` ~160 ms · un `sh` sau orice alt
+#   proces ~170 ms
+# Cu colectorul rulat sincron, un `git commit` urca de la ~240 ms la ~2400 ms.
+# Un jurnal care face fiecare commit de zece ori mai lent ajunge sa fie oprit —
+# deci ar rata exact ce voia sa prinda.
+#
+# TOT ce se poate amanat sta INAUNTRUL subshell-ului din fundal, inclusiv citirea
+# configului: rulate inainte, `sed` si `timeout` adaugau singure ~340 ms la
+# fiecare commit. In prim-plan raman doar verificari care sunt comenzi interne
+# ale shell-ului, deci gratuite.
+#
+# Plafonul de timp (`hook.timeoutTotalSecunde`) se citeste din ACELASI
+# config.json, ca sa nu existe o a doua sursa de adevar. `git.timeoutMs` acopera
+# doar interogarile git; o scriere blocata pe un disc de retea n-ar fi acoperita
+# de nimic. In fundal, plafonul nu mai apara commit-ul — il apara statia de un
+# proces agatat la nesfarsit. Daca citirea configului esueaza, se foloseste un
+# ultim resort care NU e o setare, ci valoarea „mai bine ceva decat nelimitat".
+if [ -f "$COLECTOR" ] && command -v node >/dev/null 2>&1; then
+  (
+    CONFIG="$(dirname -- "$COLECTOR")/config.json"
+    TIMEOUT_S=$(sed -n 's/.*"timeoutTotalSecunde"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$CONFIG" 2>/dev/null | head -1)
+    case "$TIMEOUT_S" in
+      '' | *[!0-9]*) TIMEOUT_S=20 ;;
+    esac
+    if command -v timeout >/dev/null 2>&1; then
+      timeout "${TIMEOUT_S}s" node "$COLECTOR" commit
+    else
+      node "$COLECTOR" commit
+    fi
+  ) >/dev/null 2>&1 </dev/null &
+fi
+
+# Hook-ul propriu al proiectului, daca exista (vezi nota de mai sus).
+#
+# ATENTIE la felul in care se afla calea, doua capcane una peste alta:
+#
+#   1. `git rev-parse --git-path hooks/...` RESPECTA `core.hooksPath`, deci
+#      intoarce chiar fisierul asta — hook-ul se cheama pe sine la infinit.
+#      Verificat: a produs 126 de procese `sh` si a blocat `git commit` complet.
+#   2. `--absolute-git-dir` intoarce, intr-un WORKTREE secundar,
+#      `<repo>/.git/worktrees/<nume>` — un folder care n-are `hooks/`. Hook-ul
+#      local real sta in directorul COMUN si chiar ruleaza la commit din worktree,
+#      deci l-am fi sarit tacut exact in cazul pe care nota de mai sus vrea sa-l
+#      evite.
+#
+# `--git-common-dir` le rezolva pe amandoua: ignora `core.hooksPath` si arata
+# mereu spre directorul comun, si din worktree, si din repo-ul principal.
+#
+# Cazul obisnuit se rezolva FARA sa pornim un proces: git ruleaza hook-urile cu
+# directorul de lucru pe radacina repo-ului, deci daca `.git` e un folder normal,
+# hook-ul local e la `.git/hooks/post-commit` si se vede direct. `rev-parse` se
+# cheama doar cand `.git` e un FISIER — adica worktree secundar sau submodul,
+# singurele cazuri in care calea chiar trebuie intrebata. Economiseste ~160 ms
+# la fiecare commit, pentru o ramura care oricum nu se ia aproape niciodata.
+if [ -z "$VAULT_HOOK_IN_CURS" ]; then
+  if [ -d ".git" ]; then
+    # cwd e radacina repo-ului, deci calea relativa e suficienta si nu costa
+    # niciun proces; comparatia de mai jos se face pe forma absoluta
+    LOCAL_HOOK=".git/hooks/post-commit"
+  else
+    GIT_DIR_ABS="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
+    LOCAL_HOOK="${GIT_DIR_ABS:-.}/hooks/post-commit"
+  fi
+  if [ -x "$LOCAL_HOOK" ]; then
+    # Gardul impotriva auto-apelarii: daca fisierul local e chiar acesta (adica
+    # `core.hooksPath` arata spre `.git/hooks`), nu se mai cheama nimic.
+    ACEST_HOOK="$DIR_HOOK/${0##*/}"
+    LOCAL_ABS="$(CDPATH= cd -- "${LOCAL_HOOK%/*}" 2>/dev/null && pwd)/${LOCAL_HOOK##*/}"
+    ACEST_ABS="$(CDPATH= cd -- "${ACEST_HOOK%/*}" 2>/dev/null && pwd)/${ACEST_HOOK##*/}"
+    if [ "$LOCAL_ABS" != "$ACEST_ABS" ]; then
+      VAULT_HOOK_IN_CURS=1 "$LOCAL_HOOK" "$@" || true
+    fi
+  fi
+fi
+
+exit 0
