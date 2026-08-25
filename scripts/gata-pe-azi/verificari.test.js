@@ -44,7 +44,7 @@ test("config: registrul se incarca si stie proiectul real", () => {
   const c = incarcaConfig();
   assert.ok(c.proiecte["ecf-adm-expert"], "ADM Expert e in registru");
   assert.ok(c.proiecte["ecf-adm-expert"].verificari.length >= 3);
-  assert.equal(c.git.pushAutomat, false, "push-ul NU e automat");
+  assert.equal(c.git.pushAutomat, true, "urcarea face parte din feature");
 });
 
 test("config: `dev` si `main` sunt ramuri interzise pentru commit direct", () => {
