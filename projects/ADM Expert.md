@@ -143,5 +143,3 @@ penalizare de viteză). Suita de teste rulează pe fișierele de pe disc, deci *
 dovedește că browserul vede codul nou** — vezi [[2026-08-20]] și [[Esecul tacut in sisteme AI]].
 
 Legături: [[MOC Operatii zilnice]], [[MOC Sedinte]]
-
-#azi

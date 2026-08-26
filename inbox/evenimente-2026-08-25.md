@@ -9,7 +9,7 @@ type: evenimente
 > Generat din `.events/` de `scripts/collector/close-day.js`.
 > Se rescrie la fiecare rulare — notele scrise de mână stau în ziua propriu-zisă.
 
-**Stare:** generat la 17:01 · 7 commit-uri · 6 sesiuni · 3 proiecte · 1 de întreținere
+**Stare:** generat la 08:53 · 18 commit-uri · 6 sesiuni · 3 proiecte · 2 de întreținere
 
 Ziua: [[2026-08-25]]
 
@@ -36,7 +36,7 @@ Ziua: [[2026-08-25]]
 
 ## `ecf-people-culture`
 
-**3 commit-uri** · +5434 / −100
+**14 commit-uri** · +7024 / −816
 
 - **10:27** `eaace4f` fix: meniul lateral nu mai marchează activ mai multe intrări deodată  
   2 fișiere · +34 / −1 · `fix/review-2026-08-24-export-xlsx-si-tokeni-aurora`
@@ -44,6 +44,28 @@ Ziua: [[2026-08-25]]
   2 fișiere · +34 / −1 · `fix/sidebar-stare-activa-2026-08-25`
 - **16:47** `2048d1d` feat: jurnal de audit — cine ce a făcut, când, cu ce rezultat  
   41 fișiere · +5366 / −98 · `fix/sidebar-stare-activa-2026-08-25`
+- **17:41** `ea0a3ca` feat: useDebouncedValue — hook mic de debounce, testat izolat cu fake timers  
+  2 fișiere · +79 / −0 · `fix/sidebar-stare-activa-2026-08-25`
+- **17:41** `23e5def` fix: auditPagina — coliziuni de idSlug, cast nesigur de rol, ora intrării  
+  2 fișiere · +119 / −15 · `fix/sidebar-stare-activa-2026-08-25`
+- **17:42** `cb552f1` fix: audit log — cursor real la „Încarcă mai multe", debounce la căutare  
+  2 fișiere · +272 / −52 · `fix/sidebar-stare-activa-2026-08-25`
+- **17:54** `fd48ec3` fix: date de audit ce trec regex-ul dar cad la fromisoformat dau 422, nu 500  
+  2 fișiere · +119 / −2 · `fix/sidebar-stare-activa-2026-08-25`
+- **17:55** `fa54c08` refactor: fotografiile de audit din hr_scorecard/routes.py, mutate in modul propriu  
+  2 fișiere · +89 / −60 · `fix/sidebar-stare-activa-2026-08-25`
+- **17:55** `3b76e1b` fix: AuditContext.diff avea type hints incomplete fata de recorder.diff_fields  
+  1 fișier · +3 / −1 · `fix/sidebar-stare-activa-2026-08-25`
+- **17:56** `d2ac46b` test: acopera ramura netestata de "actualizare partiala" din diff_fields  
+  1 fișier · +18 / −0 · `fix/sidebar-stare-activa-2026-08-25`
+- **17:56** `7815022` fix(security): valorile setarilor cu cheie sensibila sunt redactate in diff  
+  2 fișiere · +62 / −0 · `fix/sidebar-stare-activa-2026-08-25`
+- **17:56** `1bd9d5b` fix(security): detaliul unei erori 500 e filtrat inainte sa ajunga in jurnal  
+  2 fișiere · +64 / −1 · `fix/sidebar-stare-activa-2026-08-25`
+- **18:27** `c854b84` refactor: dependențele partajate ale rutelor scorecard, extrase în route_deps.py  
+  1 fișier · +81 / −0 · `fix/sidebar-stare-activa-2026-08-25`
+- **18:28** `44642e9` refactor: routes.py despicat în trei — 1112 → 585 + 295 + 331  
+  3 fișiere · +684 / −585 · `fix/sidebar-stare-activa-2026-08-25`
 
 ## `qa-ai-agent`
 
@@ -54,5 +76,5 @@ Ziua: [[2026-08-25]]
 
 ## Întreținere
 
-1 commit-uri automate (sincronizarea vaultului). Trecute separat, nu ascunse: o zi în care întreținerea **nu** a rulat trebuie să se vadă.
+2 commit-uri automate (sincronizarea vaultului). Trecute separat, nu ascunse: o zi în care întreținerea **nu** a rulat trebuie să se vadă.
 
