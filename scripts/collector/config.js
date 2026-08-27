@@ -106,15 +106,47 @@ function cereBoolean(valoare, cale) {
 }
 
 /** Expresiile din config sunt date, nu cod: se compileaza aici, cu eroare clara. */
-function compileazaTipare(tipare, cale) {
+function compileazaTipare(tipare, cale, flags = "") {
   return cereListaDeTexte(tipare, cale).map((sursa, i) => {
     try {
-      return new RegExp(sursa);
+      return new RegExp(sursa, flags);
     } catch (e) {
       throw new ConfigInvalid(
         `${cale}[${i}] nu e o expresie regulata valida: ${e.message}`,
       );
     }
+  });
+}
+
+/**
+ * Harta tehnologii: fiecare intrare leaga un tipar peste caile fisierelor de o
+ * eticheta afisata in nota zilei si, optional, o nota din vault. `nota` lipsa
+ * sau `null` inseamna doar eticheta simpla — nu se inventeaza o legatura spre
+ * o nota care n-are cum sa existe.
+ */
+function compileazaHartaTehnologii(intrari, cale) {
+  if (!Array.isArray(intrari)) {
+    throw new ConfigInvalid(`${cale} trebuie sa fie o lista`);
+  }
+  return intrari.map((intrare, i) => {
+    const obiect = cereObiect(intrare, `${cale}[${i}]`);
+    const tipar = cereText(obiect.tipar ?? "", `${cale}[${i}].tipar`);
+    let regex;
+    try {
+      regex = new RegExp(tipar, "i");
+    } catch (e) {
+      throw new ConfigInvalid(
+        `${cale}[${i}].tipar nu e o expresie regulata valida: ${e.message}`,
+      );
+    }
+    return {
+      regex,
+      eticheta: cereText(obiect.eticheta ?? "", `${cale}[${i}].eticheta`),
+      nota:
+        obiect.nota == null
+          ? null
+          : cereText(obiect.nota, `${cale}[${i}].nota`),
+    };
   });
 }
 
@@ -152,6 +184,7 @@ function incarcaConfig(optiuni = {}) {
   const incheiere = cereObiect(c.incheiere ?? {}, "incheiere");
   const raport = cereObiect(c.raport ?? {}, "raport");
   const proiecte = cereObiect(c.proiecte ?? {}, "proiecte");
+  const tehnologii = cereObiect(c.tehnologii ?? {}, "tehnologii");
   const ignorate = cereObiect(c.proiecteIgnorate ?? {}, "proiecteIgnorate");
   const diagnostic = cereObiect(c.diagnostic ?? {}, "diagnostic");
 
@@ -203,6 +236,11 @@ function incarcaConfig(optiuni = {}) {
       tipareAutomate: compileazaTipare(
         commit.tipareAutomate ?? [],
         "commit.tipareAutomate",
+      ),
+      tipareCodeReview: compileazaTipare(
+        commit.tipareCodeReview ?? [],
+        "commit.tipareCodeReview",
+        "i",
       ),
     },
     incheiere: {
@@ -256,6 +294,12 @@ function incarcaConfig(optiuni = {}) {
       maxFisiereNecomis: cereIntregPozitiv(
         raport.maxFisiereNecomis ?? 12,
         "raport.maxFisiereNecomis",
+      ),
+    },
+    tehnologii: {
+      harta: compileazaHartaTehnologii(
+        tehnologii.harta ?? [],
+        "tehnologii.harta",
       ),
     },
     // Harta e normalizata cu ACEEASI functie ca identitatea proiectelor: altfel

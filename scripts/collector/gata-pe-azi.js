@@ -61,6 +61,31 @@ function etichetaProiect(proiect, config) {
 }
 
 /**
+ * Tehnologiile atinse de un set de fisiere, dupa harta din config.
+ *
+ * Pur mecanic: un tipar peste calea fisierului, nimic dedus din continut. O
+ * eticheta fara `nota` in config ramane text simplu — nu se inventeaza o
+ * legatura [[...]] spre o nota care n-are cum sa existe in vault.
+ *
+ * @returns {{eticheta: string, nota: string|null}[]} in ordinea din harta,
+ *   fara duplicate (dupa eticheta)
+ */
+function tehnologiiDinFisiere(fisiere, harta) {
+  const gasite = [];
+  for (const { regex, eticheta, nota } of harta) {
+    if (gasite.some((g) => g.eticheta === eticheta)) continue;
+    if (fisiere.some((f) => regex.test(f))) gasite.push({ eticheta, nota });
+  }
+  return gasite;
+}
+
+function randTehnologii(tehnologii) {
+  return tehnologii
+    .map((t) => (t.nota ? `[[${t.nota}]]` : `\`${t.eticheta}\``))
+    .join(", ");
+}
+
+/**
  * Repo-urile gasite sub radacinile din config, pe un singur nivel.
  *
  * Descoperire, nu lista scrisa de mana: o lista se desincronizeaza garantat, iar
@@ -182,6 +207,7 @@ function stangeFapte(config, zi, sedinte = [], prezent = null) {
         adaugate: 0,
         sterse: 0,
         fisiere: 0,
+        caiFisiere: [],
       });
     }
     const p = perProiect.get(ev.proiect);
@@ -189,7 +215,19 @@ function stangeFapte(config, zi, sedinte = [], prezent = null) {
     p.adaugate += ev.adaugate;
     p.sterse += ev.sterse;
     p.fisiere += ev.fisiere;
+    if (ev.fisiereAtinse) p.caiFisiere.push(...ev.fisiereAtinse);
   }
+  for (const p of perProiect.values()) {
+    p.tehnologii = tehnologiiDinFisiere(p.caiFisiere, config.tehnologii.harta);
+  }
+
+  // Sursa e STRICT subiectul commit-ului — nicio interogare GitHub. Un commit
+  // de intretinere n-are ce cauta aici, la fel ca in restul faptelor.
+  const codeReview = commituri
+    .filter((ev) =>
+      config.commit.tipareCodeReview.some((re) => re.test(ev.subiect || "")),
+    )
+    .sort((a, b) => a.ts.localeCompare(b.ts));
 
   const necomis = sesiuni
     .filter((s) => s.necomise > 0)
@@ -250,10 +288,10 @@ function stangeFapte(config, zi, sedinte = [], prezent = null) {
           (n, i, tot) => tot.findIndex((x) => x.proiect === n.proiect) === i,
         )
       : [],
-    proiecte: [...perProiect.entries()].map(([proiect, p]) => ({
-      proiect,
-      ...p,
-    })),
+    proiecte: [...perProiect.entries()].map(([proiect, p]) => {
+      const { caiFisiere, ...restul } = p;
+      return { proiect, ...restul };
+    }),
     totalCommituri: commituri.length,
     totalAdaugate: commituri.reduce((t, e) => t + e.adaugate, 0),
     totalSterse: commituri.reduce((t, e) => t + e.sterse, 0),
@@ -262,6 +300,7 @@ function stangeFapte(config, zi, sedinte = [], prezent = null) {
     necomis,
     sedinte,
     duplicate: [...dinJurnal, ...dinScanare],
+    codeReview,
   };
 }
 
@@ -304,6 +343,20 @@ function construiesteBloc(fapte, config) {
       for (const ev of p.commituri.sort((a, b) => a.ts.localeCompare(b.ts))) {
         out.push(`    - **${ev.ts}** \`${ev.sha}\` ${ev.subiect}`);
       }
+      if (p.tehnologii.length) {
+        out.push(`    - tehnologii: ${randTehnologii(p.tehnologii)}`);
+      }
+    }
+    out.push("");
+  }
+
+  if (fapte.codeReview.length) {
+    out.push("**Code review** — extras din mesajul de commit, nu din GitHub");
+    out.push("");
+    for (const ev of fapte.codeReview) {
+      out.push(
+        `- ${etichetaProiect(ev.proiect, config)} \`${ev.sha}\` ${ev.subiect}`,
+      );
     }
     out.push("");
   }

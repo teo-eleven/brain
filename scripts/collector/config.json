@@ -33,7 +33,9 @@
 
   "commit": {
     "_tipareAutomate": "Expresii regulate peste subiectul commit-ului. Ce se potriveste e marcat `automat: true` — marcat, NU exclus: o zi in care intretinerea n-a rulat trebuie sa se vada.",
-    "tipareAutomate": ["^notes: sync "]
+    "tipareAutomate": ["^notes: sync "],
+    "_tipareCodeReview": "Expresii regulate (fara majuscule/minuscule) peste subiectul commit-ului. Ce se potriveste intra si in sectiunea separata 'Code review' din nota zilei — sursa e STRICT mesajul de commit, nu se interogheaza GitHub.",
+    "tipareCodeReview": ["code ?review", "revizui", "\\bdefect"]
   },
 
   "incheiere": {
@@ -74,6 +76,73 @@
       "https://github.com/econfaire/ecf-adm-expert": "ADM Expert",
       "https://github.com/tewtzu-ctrl/brain": "MOC Vault"
     }
+  },
+
+  "tehnologii": {
+    "_harta": "Tipare peste caile fisierelor atinse (fara majuscule/minuscule), in ordinea din lista. Fiecare potrivire adauga eticheta la sectiunea 'tehnologii:' a proiectului in nota zilei. 'nota', daca e prezenta, devine legatura [[...]] spre o nota din vault — lipsa ei inseamna doar eticheta simpla, fara legatura inventata catre o nota care nu exista.",
+    "harta": [
+      {
+        "tipar": "migrations/versions/",
+        "eticheta": "Alembic (migrare schema)",
+        "nota": "Alembic - migrari de schema"
+      },
+      {
+        "tipar": "docker-compose",
+        "eticheta": "Docker Compose",
+        "nota": "Docker Compose - stack local"
+      },
+      {
+        "tipar": "pyproject\\.toml$|uv\\.lock$",
+        "eticheta": "uv (pachete Python)",
+        "nota": "uv - pachete Python rapid"
+      },
+      {
+        "tipar": "litellm",
+        "eticheta": "LiteLLM",
+        "nota": "LiteLLM - gateway pentru modele"
+      },
+      {
+        "tipar": "langfuse",
+        "eticheta": "Langfuse",
+        "nota": "Langfuse - tracing pentru LLM"
+      },
+      {
+        "tipar": "promptfoo",
+        "eticheta": "promptfoo",
+        "nota": "promptfoo - teste pe prompturi"
+      },
+      {
+        "tipar": "schemas?\\.py$",
+        "eticheta": "Pydantic",
+        "nota": "Pydantic v2 - validare la boundary"
+      },
+      {
+        "tipar": "\\.claude/",
+        "eticheta": "Claude Code",
+        "nota": "Claude Code - configurare"
+      },
+      {
+        "tipar": "\\bmcp\\b",
+        "eticheta": "MCP",
+        "nota": "MCP - Model Context Protocol"
+      },
+      {
+        "tipar": "apps/api/.*\\.py$",
+        "eticheta": "FastAPI (backend)",
+        "nota": "FastAPI - API async"
+      },
+      {
+        "tipar": "test_.*\\.py$|\\.test\\.tsx?$|_test\\.py$",
+        "eticheta": "Teste",
+        "nota": null
+      },
+      { "tipar": "\\.tsx?$", "eticheta": "TypeScript / React", "nota": null },
+      { "tipar": "\\.py$", "eticheta": "Python", "nota": null },
+      { "tipar": "\\.css$", "eticheta": "CSS", "nota": null },
+      { "tipar": "\\.sql$", "eticheta": "SQL", "nota": null },
+      { "tipar": "\\.ya?ml$", "eticheta": "YAML / config", "nota": null },
+      { "tipar": "\\.md$", "eticheta": "Documentație", "nota": null }
+    ]
   },
 
   "proiecteIgnorate": {

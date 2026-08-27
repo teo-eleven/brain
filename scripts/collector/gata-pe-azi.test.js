@@ -75,6 +75,7 @@ function commit(peste = {}) {
     fisiere: 10,
     adaugate: 437,
     sterse: 37,
+    fisiereAtinse: [],
     ...peste,
   };
 }
@@ -155,6 +156,69 @@ test("fapte: commit-urile intra grupate pe proiect, cu totalurile", () => {
   assert.match(nota, /\*\*2 commit-uri\*\* · \+501 \/ −40 linii · 1 proiecte/);
   assert.match(nota, /\[\[ADM Expert\]\] — 2 commit-uri/);
   assert.match(nota, /\*\*09:12\*\* `290dc61` fix: ceva reparat/);
+});
+
+test("tehnologiile detectate din fisierele atinse apar legate la proiect", () => {
+  const vault = vaultNou();
+  const config = configCu(vault);
+  scrieJurnal(config, [
+    commit({
+      fisiereAtinse: [
+        "apps/api/modules/budgets/service.py",
+        "apps/api/modules/budgets/migrations/versions/0010_x.py",
+        "apps/web/src/core/pages/Settings.tsx",
+        "tests/test_company_edit.py",
+      ],
+    }),
+  ]);
+  cuNotaOmului(config);
+
+  gata.ruleaza({ config, zi: ZI, faraSync: true });
+
+  const nota = citesteNota(config);
+  assert.match(nota, /tehnologii: .*\[\[Alembic - migrari de schema\]\]/);
+  assert.match(nota, /tehnologii: .*\[\[FastAPI - API async\]\]/);
+  assert.match(nota, /tehnologii: .*TypeScript \/ React/);
+  assert.match(nota, /tehnologii: .*Teste/);
+});
+
+test("fara fisiere care sa se potriveasca vreunui tipar, linia de tehnologii lipseste", () => {
+  const vault = vaultNou();
+  const config = configCu(vault);
+  scrieJurnal(config, [commit({ fisiereAtinse: [] })]);
+  cuNotaOmului(config);
+
+  gata.ruleaza({ config, zi: ZI, faraSync: true });
+
+  assert.equal(/tehnologii:/.test(citesteNota(config)), false);
+});
+
+test("commit-urile de code review apar intr-o sectiune separata", () => {
+  const vault = vaultNou();
+  const config = configCu(vault);
+  scrieJurnal(config, [
+    commit(),
+    commit({
+      ts: "12:33",
+      sha: "15fb965",
+      subiect:
+        "fix: defectele găsite la code review în verificarea de autenticitate",
+    }),
+  ]);
+  cuNotaOmului(config);
+
+  gata.ruleaza({ config, zi: ZI, faraSync: true });
+
+  const nota = citesteNota(config);
+  assert.match(nota, /\*\*Code review\*\*/);
+  assert.match(
+    nota,
+    /\[\[ADM Expert\]\] `15fb965` fix: defectele găsite la code review/,
+  );
+  // commit-ul obisnuit nu intra si el in sectiunea de code review
+  const inceput = nota.indexOf("**Code review**");
+  const sectiune = nota.slice(inceput, inceput + 300);
+  assert.equal(sectiune.includes("290dc61"), false);
 });
 
 test("nu atinge NIMIC din afara markerilor", () => {
@@ -333,7 +397,11 @@ function radacinaCuRepo({ necomis = true, commitAzi = false } = {}) {
   const repo = path.join(radacina, "proiect-x");
   fs.mkdirSync(repo);
   const g = (args) =>
-    execFileSync("git", args, { cwd: repo, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+    execFileSync("git", args, {
+      cwd: repo,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
   g(["init", "--quiet", "--initial-branch=main"]);
   g(["config", "user.email", "t@e.com"]);
   g(["config", "user.name", "T"]);
@@ -387,14 +455,21 @@ test("prezent: un commit pe care hook-ul l-a ratat e recuperat si MARCAT ca atar
 
 test("prezent: un commit deja in jurnal NU e raportat si ca recuperat", () => {
   const vault = vaultNou();
-  const { radacina, repo } = radacinaCuRepo({ necomis: false, commitAzi: true });
+  const { radacina, repo } = radacinaCuRepo({
+    necomis: false,
+    commitAzi: true,
+  });
   const config = configCu(vault, { raport: { radaciniRepo: [radacina] } });
   const sha = execFileSync("git", ["rev-parse", "--short", "HEAD"], {
     cwd: repo,
     encoding: "utf8",
   }).trim();
   scrieJurnal(config, [
-    commit({ sha, subiect: "feat: facut azi, fara hook", proiect: "https://github.com/exemplu/proiect-x" }),
+    commit({
+      sha,
+      subiect: "feat: facut azi, fara hook",
+      proiect: "https://github.com/exemplu/proiect-x",
+    }),
   ]);
   cuNotaOmului(config);
 
