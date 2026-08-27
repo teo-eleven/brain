@@ -9,7 +9,7 @@ type: evenimente
 > Generat din `.events/` de `scripts/collector/close-day.js`.
 > Se rescrie la fiecare rulare — notele scrise de mână stau în ziua propriu-zisă.
 
-**Stare:** generat la 11:45 · 5 commit-uri · 2 sesiuni · 5 proiecte · 4 de întreținere
+**Stare:** generat la 11:46 · 4 commit-uri · 2 sesiuni · 4 proiecte · 5 de întreținere
 
 Ziua: [[2026-08-27]]
 
@@ -45,14 +45,7 @@ Ziua: [[2026-08-27]]
 - **11:16** sesiune încheiată (prompt_input_exit) · **1 fișier necomise**  
   generators/make_limit_documents.py
 
-## `tmp.vjYZL1WqxA`
-
-**1 commit-uri** · +1 / −0
-
-- **11:32** `8ded3d6` base  
-  1 fișier · +1 / −0 · `main`
-
 ## Întreținere
 
-4 commit-uri automate (sincronizarea vaultului). Trecute separat, nu ascunse: o zi în care întreținerea **nu** a rulat trebuie să se vadă.
+5 commit-uri automate (sincronizarea vaultului). Trecute separat, nu ascunse: o zi în care întreținerea **nu** a rulat trebuie să se vadă.
 
