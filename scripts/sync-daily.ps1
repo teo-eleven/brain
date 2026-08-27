@@ -41,6 +41,11 @@
 .EXAMPLE
     .\sync-daily.ps1 -Date 2026-08-06
     Reconstruieste o zi anterioara.
+
+.EXAMPLE
+    .\sync-daily.ps1 -IncludeFisiereStraine
+    Comite si fisierele straine (cod, config) gasite murdare in vault, in loc
+    sa se opreasca. Vezi $NOTE_SCOPE mai jos pentru motiv.
 #>
 
 [CmdletBinding()]
@@ -48,7 +53,13 @@ param(
     [string]   $Vault,
     [string]   $Date,
     [switch]   $NoTag,
-    [switch]   $Backfill
+    [switch]   $Backfill,
+    # Fara asta, scriptul REFUZA sa comita daca gaseste in vault fisiere
+    # murdare din afara scopului sau (cod, config, orice nu e nota) - vezi
+    # $NOTE_SCOPE si blocul de commit de la finalul fisierului. Comutatorul
+    # exista fiindca uneori chiar vrei sa le comiti odata cu ziua (ex. o
+    # schimbare mica in scripts/, facuta manual chiar inaintea rularii).
+    [switch]   $IncludeFisiereStraine
 )
 
 # $PSScriptRoot e gol in blocul param() cand scriptul e pornit cu `powershell -File`
@@ -125,6 +136,73 @@ $C_ANCHOR     = '#8a93a5'   # gri     - ancorele vaultului
 $C_PAST_NEAR  = '#a78bfa'   # violet  - ziua precedenta, cea mai relevanta
 $C_PAST       = '#6f7689'   # gri-rece - restul zilelor, tot mai in fundal
 $MAX_PAST_DAYS = 6          # cate zile trecute tin pe canvas
+
+# ---------------------------------------------------------------------------
+# Scopul scriptului: ce foldere/fisiere sunt ALE LUI, deci normal sa intre in
+# commit-ul de mai jos. Orice altceva murdar in vault (cod, config, teste) NU
+# e treaba unei rulari de rutina sa il comita fara sa intrebe - vezi blocul de
+# commit de la finalul fisierului si `$IncludeFisiereStraine`.
+#
+# Bug real, 27.08: scriptul rulat direct (in afara `/graph`, care intreaba
+# separat) a comis fara voie niste editari de cod aflate atunci in lucru in
+# scripts/collector/, doar fiindca erau murdare in acelasi repo. `git add -A`
+# fara nicio bariera nu distinge intre "nota de azi" si "orice altceva pe disc".
+$NOTE_SCOPE_FOLDERE = @(
+    'daily', 'inbox', 'projects', 'notes', 'maps', 'decisions',
+    'meetings', 'people', 'weekly', 'cheatsheets', 'snippets', 'attachments'
+)
+# Fisiere individuale, la radacina sau in .obsidian, pe care scriptul le atinge
+# sau despre care se stie ca Obsidian le rescrie cat timp ruleaza - vezi
+# .DESCRIPTION. `.obsidian/graph.json` NU e scris de scriptul asta, dar intra
+# des murdar din pornirea aplicatiei si e vault, nu cod de proiect.
+$NOTE_SCOPE_FISIERE = @($CANVAS_FILE, '.obsidian/graph.json')
+
+<#
+.SYNOPSIS
+    Fisierele murdare din `git status --porcelain` care NU sunt in scopul
+    scriptului (`$NOTE_SCOPE_FOLDERE` / `$NOTE_SCOPE_FISIERE`).
+#>
+function Get-FisiereStraine {
+    param([string[]]$StatusLines)
+    $straine = @()
+    foreach ($linie in $StatusLines) {
+        if (-not $linie) { continue }
+        # `git status --porcelain`: doua caractere de stare, un spatiu, calea.
+        # Redenumirile apar ca "vechi -> nou"; ne intereseaza destinatia.
+        $cale = $linie.Substring(3).Trim()
+        if ($cale -match '^"(.*)"$') { $cale = $Matches[1] }
+        if ($cale -match ' -> ') { $cale = ($cale -split ' -> ')[-1] }
+        $cale = $cale -replace '\\', '/'
+
+        if ($NOTE_SCOPE_FISIERE -contains $cale) { continue }
+        $primulSegment = $cale.Split('/')[0]
+        if ($NOTE_SCOPE_FOLDERE -contains $primulSegment) { continue }
+
+        $straine += $cale
+    }
+    return $straine
+}
+
+<#
+.SYNOPSIS
+    Neutralizeaza secvente care ar rupe span-ul de cod inline (backtick) sau
+    cautarea de marcaje (`IndexOf` in Update-DailyNote / Update-TouchedSection)
+    dintr-un text care NU e scris de tine: subiect de commit, nume de ramura,
+    cale de fisier — orice vine dintr-un repo urmarit, deci potential dintr-un
+    coleg sau un PR de echipa, nu doar de la tine.
+
+    Blocul de commit-uri e SPLICED intre marcaje ($MARK_START/$MARK_END), spre
+    deosebire de nota de evenimente din inbox (rescrisa integral). Daca un
+    subiect de commit ar contine litera exacta a unui marcaj, urmatoarea
+    rulare l-ar gasi pe ACELA cu `IndexOf`, nu pe cel real — taind sau
+    dublyand continut din nota. Nu e teoretic: subiectul de commit e text
+    liber, ales de oricine a facut acel commit.
+#>
+function Protect-Text {
+    param([string]$Text)
+    if ($null -eq $Text) { return '' }
+    return $Text -replace '`', "'" -replace '<!--', '&lt;!--' -replace '-->', '--&gt;'
+}
 
 function Write-Utf8 {
     param([string]$Path, [string]$Content)
@@ -221,17 +299,18 @@ function Build-CommitSection {
             $totalIns   += $c.Ins
             $totalDel   += $c.Del
 
-            $br = if ($c.Branches.Count) { ' · `' + ($c.Branches -join '` `') + '`' } else { '' }
-            [void]$blocks.AppendLine("**$($c.Time)** · ``$($c.Hash)``$br")
+            $branches = @($c.Branches | ForEach-Object { Protect-Text $_ })
+            $br = if ($branches.Count) { ' · `' + ($branches -join '` `') + '`' } else { '' }
+            [void]$blocks.AppendLine("**$($c.Time)** · ``$(Protect-Text $c.Hash)``$br")
             [void]$blocks.AppendLine()
-            [void]$blocks.AppendLine($c.Subject)
+            [void]$blocks.AppendLine((Protect-Text $c.Subject))
             [void]$blocks.AppendLine()
             [void]$blocks.AppendLine("$($c.Files.Count) fișiere · +$($c.Ins) / −$($c.Del)")
             [void]$blocks.AppendLine()
 
             if ($c.Files.Count) {
                 $show = $c.Files | Select-Object -First $MAX_FILES
-                foreach ($f in $show) { [void]$blocks.AppendLine("- ``$f``") }
+                foreach ($f in $show) { [void]$blocks.AppendLine("- ``$(Protect-Text $f)``") }
                 if ($c.Files.Count -gt $MAX_FILES) {
                     [void]$blocks.AppendLine("- *… și încă $($c.Files.Count - $MAX_FILES) fișiere*")
                 }
@@ -805,16 +884,40 @@ $teamsInfo = if ($cv.Teams) { "$($cv.Teams) intrări Teams" } else { "Teams neco
 Write-Host "  $CANVAS_FILE     -> $($cv.Nodes) noduri, $($cv.Edges) legături ($teamsInfo)"
 
 # commit local in vault; fara push - vezi nota din .DESCRIPTION
-$dirty = git -C $Vault status --porcelain
+# `core.quotepath=false`: fara el, git pune caile cu diacritice intre ghilimele
+# si le scrie cu escape octal (`"daily/2026-08-27_notit\303\243.md"`), exact ca
+# in restul fisierului (Get-DayCommits, Get-DayTouchedNotes o seteaza deja). Fara
+# ea aici, o redenumire de nota cu diacritice (frecvente in acest vault) trecea
+# prin dezghilimare + taiere pe " -> " intr-o ordine care lasa un ghilimea
+# ramasa pe segmentul de folder, iar `Get-FisiereStraine` marca gresit nota
+# drept "straina" — exact falsul-pozitiv pe care bariera din f13da05 trebuia
+# sa-l evite, nu sa-l produca.
+$dirty = git -C $Vault -c core.quotepath=false status --porcelain
 if (-not $dirty) {
     Write-Host ""
     Write-Host "Nimic nou de salvat in vault." -ForegroundColor DarkGray
     exit 0
 }
 
+# `git add -A` fara nicio bariera comite ORICE e murdar in vault, nu doar ce a
+# scris scriptul asta - inclusiv cod de proiect aflat intamplator in lucru in
+# acelasi moment. Fara `-IncludeFisiereStraine`, scriptul se opreste in loc sa
+# comita in tacere ceva ce n-a scris el si n-a fost intrebat despre el.
+$straine = @(Get-FisiereStraine -StatusLines ($dirty -split "`n"))
+if ($straine.Count -gt 0 -and -not $IncludeFisiereStraine) {
+    Write-Host ""
+    Write-Host "Nu comit: $($straine.Count) fisier(e) murdare in vault nu sunt note de zi:" -ForegroundColor Yellow
+    foreach ($f in $straine) { Write-Host "  - $f" -ForegroundColor Yellow }
+    Write-Host "Comite-le separat, sau ruleaza cu -IncludeFisiereStraine daca chiar trebuie sa intre odata cu ziua." -ForegroundColor Yellow
+    exit 3
+}
+
 git -C $Vault add -A | Out-Null
 $msg = "notes: sync $Date - $($section.Commits) commit-uri din repo-urile urmarite"
 git -C $Vault commit -q -m $msg
 Write-Host ""
+if ($straine.Count -gt 0) {
+    Write-Host "  ATENTIE: comise si fisiere straine ($($straine.Count)), cerut explicit cu -IncludeFisiereStraine" -ForegroundColor Yellow
+}
 Write-Host "  commit vault: $(git -C $Vault rev-parse --short HEAD)"
 Write-Host "  commit local; push-ul spre tewtzu-ctrl/brain (privat) se face manual" -ForegroundColor DarkGray

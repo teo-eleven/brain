@@ -92,6 +92,18 @@ test("comite pe o ramura NOUA, nu pe cea pe care erai", () => {
   assert.equal(gz.ramuraCurenta(cale), r.ramura);
 });
 
+test("numaratoarea de fisiere e cea REALA, nu cu unul in plus", () => {
+  // `repoCuRemote` cu modificari implicit adauga UN singur fisier nou
+  // (nou.txt) peste baza deja comisa. `git show --stat --oneline` scoate
+  // randul de antet si cel de rezumat pe langa randul de fisier — numaratoarea
+  // trebuie sa scada AMANDOUA, nu doar unul.
+  const { proiect } = repoCuRemote({ ramura: "dev" });
+
+  const r = gz.pregateste(proiect, OPT());
+
+  assert.equal(r.fisiere, 1);
+});
+
 test("`dev` ramane NEATINSA — bariera care conteaza cel mai mult", () => {
   const { cale, proiect } = repoCuRemote({ ramura: "dev" });
   const inainte = git(["rev-parse", "dev"], cale);
@@ -157,21 +169,43 @@ test("a doua rulare in aceeasi zi refoloseste ramura, nu crapa", () => {
 
 // ---------------------------------------------------------------- push
 
-test("push-ul e REFUZAT fara confirmare, chiar daca totul e pregatit", () => {
-  // Bariera 3. Un push nu se ia inapoi.
+/** Config cu urcarea oprita — mecanismul se testeaza independent de politica zilei. */
+const CONFIG_FARA_PUSH = {
+  ...CONFIG,
+  git: { ...CONFIG.git, pushAutomat: false },
+};
+
+test("cu `pushAutomat: false`, push-ul e REFUZAT fara confirmare", () => {
+  // Mecanismul trebuie sa ramana, chiar daca politica actuala e sa se urce
+  // automat: `pushAutomat` e un comutator din config, iar cine il pune pe
+  // `false` trebuie sa fie sigur ca oprirea chiar functioneaza.
   const { proiect } = repoCuRemote();
   const comis = gz.pregateste(proiect, OPT());
 
-  const r = gz.publica(comis, { config: CONFIG });
+  const r = gz.publica(comis, { config: CONFIG_FARA_PUSH });
 
   assert.equal(r.push, "refuzat");
   assert.equal(r.motiv, "lipsește confirmarea");
 });
 
+test("cu `pushAutomat: true`, ramura urca fara sa se mai ceara nimic", () => {
+  // Politica aleasa pe 24.08: urcarea face parte din „gata pe azi".
+  const { bare, proiect } = repoCuRemote();
+  const comis = gz.pregateste(proiect, OPT());
+
+  const r = gz.publica(comis, { config: CONFIG });
+
+  assert.equal(r.push, "urcat");
+  assert.match(
+    execFileSync("git", ["branch", "--list"], { cwd: bare, encoding: "utf8" }),
+    /fix\/review-2026-08-24/,
+  );
+});
+
 test("push-ul nu a atins remote-ul cat timp a fost refuzat", () => {
   const { bare, proiect } = repoCuRemote();
   const comis = gz.pregateste(proiect, OPT());
-  gz.publica(comis, { config: CONFIG });
+  gz.publica(comis, { config: CONFIG_FARA_PUSH });
 
   const ramuriPeRemote = execFileSync("git", ["branch", "--list"], {
     cwd: bare,
@@ -200,4 +234,17 @@ test("un proiect care n-a fost comis nu se publica nici cu confirmare", () => {
   const r = gz.publica(sarit, { config: CONFIG, confirmat: true });
 
   assert.equal(r.push, "sărit");
+});
+
+test("fiecare proiect primeste o ramura NOUA, si vaultul la fel", () => {
+  // Cerinta proprietarului (24.08): fara exceptii. Vaultul avea inainte
+  // `creeazaRamuraNoua: false`, ca sa-si pastreze fluxul propriu de ramuri.
+  const configReal = require("./config.js").incarcaConfig();
+  for (const [nume, p] of Object.entries(configReal.proiecte)) {
+    assert.equal(
+      p.creeazaRamuraNoua,
+      true,
+      `${nume} trebuie sa primeasca ramura noua`,
+    );
+  }
 });

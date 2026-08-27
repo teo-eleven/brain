@@ -16,20 +16,28 @@
   },
   "reparatii": {
     "_": "Faza 4. Se repara automat DOAR ce e critic sau inalt, iar dupa fiecare reparatie se rerulează verificarile. O reparatie care face ceva rosu se anuleaza si se raporteaza ca nereparabila automat.",
-    "severitatiReparate": ["CRITIC", "INALT"],
+    "severitatiReparate": [
+      "CRITIC",
+      "INALT"
+    ],
     "_maxPerRulare": "Plafon de reparatii intr-o singura rulare, ca o zi proasta sa nu devina un maraton de rescris nesupravegheat.",
     "maxPerRulare": 8
   },
   "git": {
-    "_": "Faza 6. Branch nou din baza proiectului, commit local. Push-ul NU se face de aici — se cere confirmare, o singura data, dupa ce lista e aratata.",
+    "_": "Faza 6. Fiecare proiect lucrat azi primeste o RAMURA NOUA si e urcat pe ea. Urcarea face parte din feature (decizia proprietarului, 24.08): nu se mai cere confirmare la fiecare rulare. Raman insa barierele care nu se pot anula din config: niciodata commit direct pe main/master/dev, niciodata --force, si niciodata alt proiect decat cele din registru.",
     "prefixRamura": "fix/review",
     "_tiparRamura": "Substitutii: {prefix}, {zi}, {proiect}, {sufix}",
     "tiparRamura": "{prefix}-{zi}-{sufix}",
-    "pushAutomat": false,
+    "pushAutomat": true,
     "_timeoutMs": "Cat astept o comanda git (interogare sau commit) inainte sa renunt. Acopera si faza de plan, si faza de commit — aceeasi intrebare, un singur plafon de reglat.",
     "timeoutMs": 60000,
     "_ramuriInterzise": "Nu se comite niciodata direct pe astea; daca proiectul e pe una dintre ele, se creeaza obligatoriu branch nou.",
-    "ramuriInterzise": ["main", "master", "dev", "develop"],
+    "ramuriInterzise": [
+      "main",
+      "master",
+      "dev",
+      "develop"
+    ],
     "_creeazaRamuraNoua": "Implicit se creeaza mereu ramura noua. Un proiect poate cere sa se comita PE RAMURA CURENTA (`creeazaRamuraNoua: false`) — cazul vaultului, care are deja fluxul lui de ramuri. Chiar si atunci, o ramura protejata (main/dev/master) forteaza ramura noua: regula aia nu se poate anula din config."
   },
   "proiecte": {
@@ -160,10 +168,10 @@
       ]
     },
     "brain": {
-      "_": "Vaultul insusi. `creeazaRamuraNoua: false` fiindca are deja fluxul lui (notes/... -> PR -> main); o ramura noua pe zi l-ar fragmenta. ATENTIE la ordine: faza 7 ruleaza `sync-daily.ps1`, care face `git add -A` si inca un commit — deci vaultul primeste DOUA commit-uri, unul de la faza 6 si unul de la sincronizare.",
+      "_": "Vaultul insusi. Primeste ramura noua ca oricare alt proiect. ATENTIE la ordine: faza 7 ruleaza `sync-daily.ps1`, care face `git add -A` si inca un commit — deci vaultul primeste DOUA commit-uri pe ramura zilei, unul de la faza 6 si unul de la sincronizare.",
       "cale": "D:/teodor.fotciuc/brain",
       "ramuraBaza": "main",
-      "creeazaRamuraNoua": false,
+      "creeazaRamuraNoua": true,
       "verificari": [
         {
           "nume": "teste",

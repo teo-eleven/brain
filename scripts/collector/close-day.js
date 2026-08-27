@@ -94,9 +94,20 @@ function numeScurt(proiect) {
   return proiect.split("/").filter(Boolean).pop() || proiect;
 }
 
+/**
+ * Scapa backtick-urile dintr-un text care NU e scris de tine (subiect de
+ * commit, nume de ramura, cale de fisier) inainte sa fie pus intr-un span de
+ * cod inline — altfel un backtick din text ar rupe span-ul. Fisierul asta se
+ * rescrie integral la fiecare rulare (nu se cauta marcaje ca in nota zilei),
+ * deci nu exista riscul de spargere a blocului — doar de randare stricata.
+ */
+function sigur(text) {
+  return String(text ?? "").replace(/`/g, "'");
+}
+
 function titluProiect(proiect, config) {
   const nota = config.proiecte.harta[proiect];
-  return nota ? `[[${nota}]]` : `\`${numeScurt(proiect)}\``;
+  return nota ? `[[${nota}]]` : `\`${sigur(numeScurt(proiect))}\``;
 }
 
 function bani(n) {
@@ -139,8 +150,8 @@ function randCommit(ev) {
   const linii = `+${ev.adaugate} / −${ev.sterse}`;
   const marcaje = ev.merge ? " · merge" : "";
   return (
-    `- **${ev.ts}** \`${ev.sha}\` ${ev.subiect}  \n` +
-    `  ${bani(ev.fisiere)} · ${linii} · \`${ev.ramura}\`${marcaje}`
+    `- **${ev.ts}** \`${ev.sha}\` ${sigur(ev.subiect)}  \n` +
+    `  ${bani(ev.fisiere)} · ${linii} · \`${sigur(ev.ramura)}\`${marcaje}`
   );
 }
 
@@ -149,7 +160,7 @@ function randSesiune(ev) {
   if (!ev.necomise) {
     return `- **${ev.ts}** sesiune încheiată${motiv} · nimic necomis`;
   }
-  const lista = ev.fisiereNecomise.join(", ");
+  const lista = ev.fisiereNecomise.map(sigur).join(", ");
   return (
     `- **${ev.ts}** sesiune încheiată${motiv} · **${bani(ev.necomise)} necomise**  \n` +
     `  ${lista}`
@@ -202,8 +213,8 @@ function construiesteVedere(zi, evenimente, config) {
     );
     out.push("");
     for (const d of duplicate) {
-      out.push(`- \`${d.proiect}\``);
-      for (const c of d.cai) out.push(`  - \`${c}\``);
+      out.push(`- \`${sigur(d.proiect)}\``);
+      for (const c of d.cai) out.push(`  - \`${sigur(c)}\``);
     }
     out.push("");
   }
@@ -318,7 +329,16 @@ function ruleazaSyncDaily(config) {
     );
     return { rulat: true };
   } catch (e) {
-    return { rulat: false, motiv: e.message };
+    // `execFileSync` pune in `.message` doar linia de comanda ("Command
+    // failed: powershell ..."), nu si ce a scris scriptul pe stdout — iar
+    // acolo ajunge motivul util (ex. lista de fisiere straine care a oprit
+    // commit-ul). Fara stdout-ul lipit aici, JSON-ul intors de comanda ar
+    // spune doar CA a esuat, nu si DE CE.
+    const stdout = e.stdout ? String(e.stdout).trim() : "";
+    return {
+      rulat: false,
+      motiv: stdout ? `${e.message}\n${stdout}` : e.message,
+    };
   }
 }
 

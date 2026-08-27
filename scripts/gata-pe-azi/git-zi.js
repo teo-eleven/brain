@@ -11,9 +11,12 @@
  *      publicării pe un proiect nimerit din întâmplare.
  *   2. Niciodată direct pe `dev` / `main` / `master`. Se creează întotdeauna
  *      branch nou din baza declarată a proiectului.
- *   3. Fără push. Commit-ul e local și reversibil; publicarea se cere separat,
- *      după ce lista e arătată. `git.pushAutomat` există în config, dar e
- *      `false`, iar `publica()` refuză să ruleze cât timp e așa.
+ *   3. Push-ul urmează `git.pushAutomat` din config — NU e un `false` fixat
+ *      aici. Implicit era `false` (confirmare cerută la fiecare rulare, prin
+ *      `publica({ confirmat: true })`); pe 24.08, proprietarul a decis explicit
+ *      să-l treacă pe `true` — urcarea se face fără confirmare separată de-atunci.
+ *      `publica()` respectă oricare din cele două valori are `config.json` ACUM;
+ *      dacă vrei bariera de confirmare înapoi, se schimbă acolo, nu aici.
  *   4. Fără `--force`, niciodată, în nicio ramură a codului.
  *
  * Toate setările vin din `config.json`.
@@ -159,10 +162,16 @@ function pregateste(proiect, { config, zi, sufix, mesaj }) {
       ramuraNouaFortata: faceRamuraNoua && !vreaRamuraNoua,
       eraPeRamuraProtejata: peProtejata,
       sha: gitTacut(["rev-parse", "--short", "HEAD"], proiect.cale),
-      fisiere:
+      // `--stat --oneline`: un rand de antet (sha + subiect), N randuri de
+      // fisier, un rand de rezumat ("N files changed, ..."). Numaratoarea reala
+      // de fisiere e totalul MINUS cele doua randuri care nu sunt fisiere —
+      // nu doar unul, cum era inainte (raporta cu un fisier in plus).
+      fisiere: Math.max(
+        0,
         (
           gitTacut(["show", "--stat", "--oneline", "HEAD"], proiect.cale) || ""
-        ).split("\n").length - 1,
+        ).split("\n").length - 2,
+      ),
     };
   } catch (e) {
     return { ...rezultat, actiune: "eșuat", motiv: e.message.split("\n")[0] };
