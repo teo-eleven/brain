@@ -9,7 +9,7 @@ type: evenimente
 > Generat din `.events/` de `scripts/collector/close-day.js`.
 > Se rescrie la fiecare rulare — notele scrise de mână stau în ziua propriu-zisă.
 
-**Stare:** generat la 11:07 · 1 commit-uri · 1 sesiuni · 2 proiecte · 1 de întreținere
+**Stare:** generat la 11:07 · 1 commit-uri · 1 sesiuni · 2 proiecte · 2 de întreținere
 
 Ziua: [[2026-08-27]]
 
@@ -29,5 +29,5 @@ Ziua: [[2026-08-27]]
 
 ## Întreținere
 
-1 commit-uri automate (sincronizarea vaultului). Trecute separat, nu ascunse: o zi în care întreținerea **nu** a rulat trebuie să se vadă.
+2 commit-uri automate (sincronizarea vaultului). Trecute separat, nu ascunse: o zi în care întreținerea **nu** a rulat trebuie să se vadă.
 
