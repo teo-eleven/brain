@@ -183,6 +183,27 @@ function Get-FisiereStraine {
     return $straine
 }
 
+<#
+.SYNOPSIS
+    Neutralizeaza secvente care ar rupe span-ul de cod inline (backtick) sau
+    cautarea de marcaje (`IndexOf` in Update-DailyNote / Update-TouchedSection)
+    dintr-un text care NU e scris de tine: subiect de commit, nume de ramura,
+    cale de fisier — orice vine dintr-un repo urmarit, deci potential dintr-un
+    coleg sau un PR de echipa, nu doar de la tine.
+
+    Blocul de commit-uri e SPLICED intre marcaje ($MARK_START/$MARK_END), spre
+    deosebire de nota de evenimente din inbox (rescrisa integral). Daca un
+    subiect de commit ar contine litera exacta a unui marcaj, urmatoarea
+    rulare l-ar gasi pe ACELA cu `IndexOf`, nu pe cel real — taind sau
+    dublyand continut din nota. Nu e teoretic: subiectul de commit e text
+    liber, ales de oricine a facut acel commit.
+#>
+function Protect-Text {
+    param([string]$Text)
+    if ($null -eq $Text) { return '' }
+    return $Text -replace '`', "'" -replace '<!--', '&lt;!--' -replace '-->', '--&gt;'
+}
+
 function Write-Utf8 {
     param([string]$Path, [string]$Content)
     $dir = Split-Path -Parent $Path
@@ -278,17 +299,18 @@ function Build-CommitSection {
             $totalIns   += $c.Ins
             $totalDel   += $c.Del
 
-            $br = if ($c.Branches.Count) { ' · `' + ($c.Branches -join '` `') + '`' } else { '' }
-            [void]$blocks.AppendLine("**$($c.Time)** · ``$($c.Hash)``$br")
+            $branches = @($c.Branches | ForEach-Object { Protect-Text $_ })
+            $br = if ($branches.Count) { ' · `' + ($branches -join '` `') + '`' } else { '' }
+            [void]$blocks.AppendLine("**$($c.Time)** · ``$(Protect-Text $c.Hash)``$br")
             [void]$blocks.AppendLine()
-            [void]$blocks.AppendLine($c.Subject)
+            [void]$blocks.AppendLine((Protect-Text $c.Subject))
             [void]$blocks.AppendLine()
             [void]$blocks.AppendLine("$($c.Files.Count) fișiere · +$($c.Ins) / −$($c.Del)")
             [void]$blocks.AppendLine()
 
             if ($c.Files.Count) {
                 $show = $c.Files | Select-Object -First $MAX_FILES
-                foreach ($f in $show) { [void]$blocks.AppendLine("- ``$f``") }
+                foreach ($f in $show) { [void]$blocks.AppendLine("- ``$(Protect-Text $f)``") }
                 if ($c.Files.Count -gt $MAX_FILES) {
                     [void]$blocks.AppendLine("- *… și încă $($c.Files.Count - $MAX_FILES) fișiere*")
                 }
@@ -862,7 +884,15 @@ $teamsInfo = if ($cv.Teams) { "$($cv.Teams) intrări Teams" } else { "Teams neco
 Write-Host "  $CANVAS_FILE     -> $($cv.Nodes) noduri, $($cv.Edges) legături ($teamsInfo)"
 
 # commit local in vault; fara push - vezi nota din .DESCRIPTION
-$dirty = git -C $Vault status --porcelain
+# `core.quotepath=false`: fara el, git pune caile cu diacritice intre ghilimele
+# si le scrie cu escape octal (`"daily/2026-08-27_notit\303\243.md"`), exact ca
+# in restul fisierului (Get-DayCommits, Get-DayTouchedNotes o seteaza deja). Fara
+# ea aici, o redenumire de nota cu diacritice (frecvente in acest vault) trecea
+# prin dezghilimare + taiere pe " -> " intr-o ordine care lasa un ghilimea
+# ramasa pe segmentul de folder, iar `Get-FisiereStraine` marca gresit nota
+# drept "straina" — exact falsul-pozitiv pe care bariera din f13da05 trebuia
+# sa-l evite, nu sa-l produca.
+$dirty = git -C $Vault -c core.quotepath=false status --porcelain
 if (-not $dirty) {
     Write-Host ""
     Write-Host "Nimic nou de salvat in vault." -ForegroundColor DarkGray

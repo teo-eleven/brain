@@ -92,6 +92,18 @@ test("comite pe o ramura NOUA, nu pe cea pe care erai", () => {
   assert.equal(gz.ramuraCurenta(cale), r.ramura);
 });
 
+test("numaratoarea de fisiere e cea REALA, nu cu unul in plus", () => {
+  // `repoCuRemote` cu modificari implicit adauga UN singur fisier nou
+  // (nou.txt) peste baza deja comisa. `git show --stat --oneline` scoate
+  // randul de antet si cel de rezumat pe langa randul de fisier — numaratoarea
+  // trebuie sa scada AMANDOUA, nu doar unul.
+  const { proiect } = repoCuRemote({ ramura: "dev" });
+
+  const r = gz.pregateste(proiect, OPT());
+
+  assert.equal(r.fisiere, 1);
+});
+
 test("`dev` ramane NEATINSA — bariera care conteaza cel mai mult", () => {
   const { cale, proiect } = repoCuRemote({ ramura: "dev" });
   const inainte = git(["rev-parse", "dev"], cale);
