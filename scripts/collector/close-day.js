@@ -318,7 +318,16 @@ function ruleazaSyncDaily(config) {
     );
     return { rulat: true };
   } catch (e) {
-    return { rulat: false, motiv: e.message };
+    // `execFileSync` pune in `.message` doar linia de comanda ("Command
+    // failed: powershell ..."), nu si ce a scris scriptul pe stdout — iar
+    // acolo ajunge motivul util (ex. lista de fisiere straine care a oprit
+    // commit-ul). Fara stdout-ul lipit aici, JSON-ul intors de comanda ar
+    // spune doar CA a esuat, nu si DE CE.
+    const stdout = e.stdout ? String(e.stdout).trim() : "";
+    return {
+      rulat: false,
+      motiv: stdout ? `${e.message}\n${stdout}` : e.message,
+    };
   }
 }
 

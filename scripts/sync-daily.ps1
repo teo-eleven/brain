@@ -41,6 +41,11 @@
 .EXAMPLE
     .\sync-daily.ps1 -Date 2026-08-06
     Reconstruieste o zi anterioara.
+
+.EXAMPLE
+    .\sync-daily.ps1 -IncludeFisiereStraine
+    Comite si fisierele straine (cod, config) gasite murdare in vault, in loc
+    sa se opreasca. Vezi $NOTE_SCOPE mai jos pentru motiv.
 #>
 
 [CmdletBinding()]
@@ -48,7 +53,13 @@ param(
     [string]   $Vault,
     [string]   $Date,
     [switch]   $NoTag,
-    [switch]   $Backfill
+    [switch]   $Backfill,
+    # Fara asta, scriptul REFUZA sa comita daca gaseste in vault fisiere
+    # murdare din afara scopului sau (cod, config, orice nu e nota) - vezi
+    # $NOTE_SCOPE si blocul de commit de la finalul fisierului. Comutatorul
+    # exista fiindca uneori chiar vrei sa le comiti odata cu ziua (ex. o
+    # schimbare mica in scripts/, facuta manual chiar inaintea rularii).
+    [switch]   $IncludeFisiereStraine
 )
 
 # $PSScriptRoot e gol in blocul param() cand scriptul e pornit cu `powershell -File`
@@ -125,6 +136,52 @@ $C_ANCHOR     = '#8a93a5'   # gri     - ancorele vaultului
 $C_PAST_NEAR  = '#a78bfa'   # violet  - ziua precedenta, cea mai relevanta
 $C_PAST       = '#6f7689'   # gri-rece - restul zilelor, tot mai in fundal
 $MAX_PAST_DAYS = 6          # cate zile trecute tin pe canvas
+
+# ---------------------------------------------------------------------------
+# Scopul scriptului: ce foldere/fisiere sunt ALE LUI, deci normal sa intre in
+# commit-ul de mai jos. Orice altceva murdar in vault (cod, config, teste) NU
+# e treaba unei rulari de rutina sa il comita fara sa intrebe - vezi blocul de
+# commit de la finalul fisierului si `$IncludeFisiereStraine`.
+#
+# Bug real, 27.08: scriptul rulat direct (in afara `/graph`, care intreaba
+# separat) a comis fara voie niste editari de cod aflate atunci in lucru in
+# scripts/collector/, doar fiindca erau murdare in acelasi repo. `git add -A`
+# fara nicio bariera nu distinge intre "nota de azi" si "orice altceva pe disc".
+$NOTE_SCOPE_FOLDERE = @(
+    'daily', 'inbox', 'projects', 'notes', 'maps', 'decisions',
+    'meetings', 'people', 'weekly', 'cheatsheets', 'snippets', 'attachments'
+)
+# Fisiere individuale, la radacina sau in .obsidian, pe care scriptul le atinge
+# sau despre care se stie ca Obsidian le rescrie cat timp ruleaza - vezi
+# .DESCRIPTION. `.obsidian/graph.json` NU e scris de scriptul asta, dar intra
+# des murdar din pornirea aplicatiei si e vault, nu cod de proiect.
+$NOTE_SCOPE_FISIERE = @($CANVAS_FILE, '.obsidian/graph.json')
+
+<#
+.SYNOPSIS
+    Fisierele murdare din `git status --porcelain` care NU sunt in scopul
+    scriptului (`$NOTE_SCOPE_FOLDERE` / `$NOTE_SCOPE_FISIERE`).
+#>
+function Get-FisiereStraine {
+    param([string[]]$StatusLines)
+    $straine = @()
+    foreach ($linie in $StatusLines) {
+        if (-not $linie) { continue }
+        # `git status --porcelain`: doua caractere de stare, un spatiu, calea.
+        # Redenumirile apar ca "vechi -> nou"; ne intereseaza destinatia.
+        $cale = $linie.Substring(3).Trim()
+        if ($cale -match '^"(.*)"$') { $cale = $Matches[1] }
+        if ($cale -match ' -> ') { $cale = ($cale -split ' -> ')[-1] }
+        $cale = $cale -replace '\\', '/'
+
+        if ($NOTE_SCOPE_FISIERE -contains $cale) { continue }
+        $primulSegment = $cale.Split('/')[0]
+        if ($NOTE_SCOPE_FOLDERE -contains $primulSegment) { continue }
+
+        $straine += $cale
+    }
+    return $straine
+}
 
 function Write-Utf8 {
     param([string]$Path, [string]$Content)
@@ -812,9 +869,25 @@ if (-not $dirty) {
     exit 0
 }
 
+# `git add -A` fara nicio bariera comite ORICE e murdar in vault, nu doar ce a
+# scris scriptul asta - inclusiv cod de proiect aflat intamplator in lucru in
+# acelasi moment. Fara `-IncludeFisiereStraine`, scriptul se opreste in loc sa
+# comita in tacere ceva ce n-a scris el si n-a fost intrebat despre el.
+$straine = @(Get-FisiereStraine -StatusLines ($dirty -split "`n"))
+if ($straine.Count -gt 0 -and -not $IncludeFisiereStraine) {
+    Write-Host ""
+    Write-Host "Nu comit: $($straine.Count) fisier(e) murdare in vault nu sunt note de zi:" -ForegroundColor Yellow
+    foreach ($f in $straine) { Write-Host "  - $f" -ForegroundColor Yellow }
+    Write-Host "Comite-le separat, sau ruleaza cu -IncludeFisiereStraine daca chiar trebuie sa intre odata cu ziua." -ForegroundColor Yellow
+    exit 3
+}
+
 git -C $Vault add -A | Out-Null
 $msg = "notes: sync $Date - $($section.Commits) commit-uri din repo-urile urmarite"
 git -C $Vault commit -q -m $msg
 Write-Host ""
+if ($straine.Count -gt 0) {
+    Write-Host "  ATENTIE: comise si fisiere straine ($($straine.Count)), cerut explicit cu -IncludeFisiereStraine" -ForegroundColor Yellow
+}
 Write-Host "  commit vault: $(git -C $Vault rev-parse --short HEAD)"
 Write-Host "  commit local; push-ul spre tewtzu-ctrl/brain (privat) se face manual" -ForegroundColor DarkGray
